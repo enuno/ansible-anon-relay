@@ -6,7 +6,3 @@ collections:
     version: ">=1.4.0"
   - name: community.general
     version: ">=5.0.0"
-# Python requirements for Docker modules
-dependencies:
-  - docker>=5.0.0
-  - docker-compose>=1.29.0

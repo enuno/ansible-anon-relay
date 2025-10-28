@@ -1,0 +1,5 @@
+# Python requirements for Ansible Docker modules
+# Install with: pip install -r requirements.txt
+
+docker>=5.0.0
+docker-compose>=1.29.0
