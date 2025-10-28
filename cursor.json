@@ -1,0 +1,94 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "anon-relay-ansible-deployment",
+    "type": "infrastructure-as-code",
+    "language": "ansible",
+    "version": "2.0.0"
+  },
+  "ai": {
+    "providers": {
+      "cursor": {
+        "enabled": true,
+        "model": "claude-3.5-sonnet",
+        "features": {
+          "codeCompletion": true,
+          "chatAssistant": true,
+          "codeReview": true
+        }
+      },
+      "claude": {
+        "enabled": true,
+        "model": "claude-3-opus",
+        "apiKey": "${ANTHROPIC_API_KEY}"
+      },
+      "openai": {
+        "enabled": false,
+        "model": "gpt-4-turbo",
+        "apiKey": "${OPENAI_API_KEY}"
+      }
+    },
+    "contextFiles": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "DEVELOPMENT_PLAN.md",
+      "README.md",
+      "ansible.cfg",
+      "requirements.yml"
+    ],
+    "indexPaths": [
+      "roles/",
+      "group_vars/",
+      "host_vars/",
+      "*.yml"
+    ],
+    "excludePaths": [
+      ".git/",
+      ".venv/",
+      "*.retry",
+      ".molecule/",
+      "__pycache__/"
+    ]
+  },
+  "codeGeneration": {
+    "style": "ansible",
+    "conventions": {
+      "indentation": 2,
+      "quoteStyle": "double",
+      "variablePrefix": "anon_",
+      "namingConvention": "snake_case"
+    },
+    "rules": [
+      "All tasks must be idempotent",
+      "Use native Ansible modules over shell commands",
+      "Always specify 'state' parameter explicitly",
+      "Include error handling with block/rescue",
+      "Namespace all variables with 'anon_' prefix",
+      "Document all variables in defaults/main.yml",
+      "Add tags to all tasks for selective execution"
+    ]
+  },
+  "projectContext": {
+    "purpose": "Automate deployment of Anyone Protocol Anon Relay nodes via Docker",
+    "relayTypes": ["standard", "exit", "socks"],
+    "targetPlatforms": ["Ubuntu", "Debian", "Fedora"],
+    "architectures": ["amd64", "arm64"],
+    "keyFeatures": [
+      "Docker-based deployment",
+      "Multi-relay type support",
+      "Security hardening",
+      "Cross-platform compatibility"
+    ]
+  },
+  "security": {
+    "sensitiveFiles": [
+      "**/*vault*",
+      "**/*.key",
+      "**/*.pem",
+      ".env*",
+      "secrets.*"
+    ],
+    "vaultEnabled": true,
+    "requireVaultForSecrets": true
+  }
+}

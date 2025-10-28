@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "redhat.ansible",
+    "redhat.vscode-yaml",
+    "github.copilot",
+    "github.copilot-chat",
+    "samuelcolvin.jinjahtml",
+    "esbenp.prettier-vscode",
+    "ms-python.python",
+    "ms-azuretools.vscode-docker",
+    "timonwong.shellcheck",
+    "yzhang.markdown-all-in-one",
+    "streetsidesoftware.code-spell-checker"
+  ],
+  "unwantedRecommendations": []
+}

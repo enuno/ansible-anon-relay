@@ -1,0 +1,396 @@
+# AI Agent Configuration for Ansible Anon Relay Deployment
+# This file configures AI coding assistants for this project
+
+project:
+  name: "anon-relay-ansible-deployment"
+  version: "2.0.0"
+  type: "infrastructure-as-code"
+  language: "ansible"
+  description: "Automate deployment of Anyone Protocol Anon Relay nodes (Standard, Exit, SOCKS) via Docker using Ansible"
+
+# ==========================================
+# AI Provider Configuration
+# ==========================================
+ai_providers:
+  cursor:
+    enabled: true
+    model: "claude-3.5-sonnet"
+    api_key_env: "ANTHROPIC_API_KEY"
+    features:
+      - code_completion
+      - chat_assistant
+      - code_review
+      - refactoring
+    context_files:
+      - "AGENTS.md"
+      - "CLAUDE.md"
+      - "DEVELOPMENT_PLAN.md"
+      - "README.md"
+      - "ansible.cfg"
+      - "requirements.yml"
+    
+  claude:
+    enabled: true
+    model: "claude-3-opus"
+    api_key_env: "ANTHROPIC_API_KEY"
+    max_tokens: 4096
+    temperature: 0.7
+    
+  copilot:
+    enabled: true
+    model: "gpt-4-turbo"
+    features:
+      - inline_suggestions
+      - chat
+      - documentation
+    
+  aider:
+    enabled: true
+    model: "claude-3.5-sonnet"
+    auto_commits: true
+    lint: true
+    lint_cmd: "ansible-lint --profile=production {file_list}"
+    context_files:
+      - "AGENTS.md"
+      - "CLAUDE.md"
+
+# ==========================================
+# Project Context for AI
+# ==========================================
+project_context:
+  purpose: "Deploy Anyone Protocol relay nodes for decentralized privacy network"
+  
+  relay_types:
+    standard:
+      description: "Middle/guard relay for network routing"
+      complexity: "medium"
+      legal_risk: "low"
+      home_suitable: true
+      
+    exit:
+      description: "Final hop where traffic exits to public internet"
+      complexity: "high"
+      legal_risk: "HIGH"
+      home_suitable: false
+      requires_legal_consultation: true
+      
+    socks:
+      description: "Local network proxy for LAN devices"
+      complexity: "low"
+      legal_risk: "low"
+      experimental: true
+  
+  target_platforms:
+    - "Ubuntu 20.04+"
+    - "Debian 10+"
+    - "Fedora 35+"
+  
+  architectures:
+    - "amd64"
+    - "arm64"
+  
+  key_technologies:
+    - "Ansible 2.15+"
+    - "Docker CE"
+    - "Docker Compose V2"
+    - "Jinja2 Templates"
+    - "YAML"
+
+# ==========================================
+# Coding Standards
+# ==========================================
+coding_standards:
+  idempotency:
+    required: true
+    rules:
+      - "All tasks must be idempotent (safe to run multiple times)"
+      - "Use 'state' parameter explicitly in every task"
+      - "Add 'changed_when' to shell/command tasks"
+      - "Implement proper conditionals with 'when'"
+      - "Test idempotency by running playbook twice"
+  
+  security:
+    vault_required: true
+    rules:
+      - "NEVER commit secrets, passwords, or API keys"
+      - "Use Ansible Vault for ALL sensitive data"
+      - "Set restrictive file permissions (600/644/755)"
+      - "Add 'no_log: true' for sensitive operations"
+      - "Namespace variables with 'anon_' prefix"
+  
+  modules:
+    prefer_native: true
+    rules:
+      - "Use native Ansible modules over shell commands"
+      - "Only use shell/command when no module exists"
+      - "Document why shell is necessary when used"
+  
+  cross_platform:
+    required: true
+    rules:
+      - "Support Ubuntu, Debian, AND Fedora"
+      - "Use distribution-agnostic modules when possible"
+      - "Abstract platform-specific logic into separate files"
+      - "Test on both amd64 and arm64"
+  
+  naming_conventions:
+    variable_prefix: "anon_"
+    style: "snake_case"
+    rules:
+      - "ALL variables MUST start with 'anon_'"
+      - "Use snake_case for all identifiers"
+      - "Be descriptive, avoid abbreviations"
+    examples:
+      correct:
+        - "anon_relay_nickname"
+        - "anon_docker_image"
+        - "anon_relay_or_port"
+      incorrect:
+        - "relay_name"  # Missing prefix
+        - "anonPort"    # camelCase
+        - "r_bw"        # Abbreviated
+
+# ==========================================
+# Code Generation Patterns
+# ==========================================
+code_patterns:
+  task_structure: |
+    - name: [Verb] [what] [optional context]
+      [module_name]:
+        [parameter]: [value]
+        state: [present|absent|started|stopped]
+      become: [yes|no]
+      tags:
+        - [tag1]
+        - [tag2]
+      when: [condition]
+      notify: [handler_name]
+  
+  error_handling: |
+    - name: Task with error handling
+      block:
+        - name: Main task
+          [module]:
+            [params]
+      rescue:
+        - name: Handle error
+          debug:
+            msg: "Error occurred: {{ ansible_failed_result }}"
+      always:
+        - name: Always execute
+          [cleanup_task]
+  
+  platform_specific: |
+    - name: Include distribution-specific tasks
+      include_tasks: "{{ ansible_distribution | lower }}.yml"
+  
+  jinja2_template_header: |
+    {# {{ ansible_managed }} #}
+    {# Anon Relay Configuration #}
+    {# Generated: {{ template_run_date }} #}
+    {# Host: {{ inventory_hostname }} #}
+
+# ==========================================
+# Testing Requirements
+# ==========================================
+testing:
+  required_checks:
+    - name: "Syntax Check"
+      command: "ansible-playbook [file].yml --syntax-check"
+      
+    - name: "Ansible Lint"
+      command: "ansible-lint [file].yml"
+      
+    - name: "YAML Lint"
+      command: "yamllint [file].yml"
+      
+    - name: "Dry Run"
+      command: "ansible-playbook -i inventory.ini [file].yml --check"
+      
+    - name: "Idempotency Test"
+      command: "ansible-playbook -i inventory.ini [file].yml"
+      notes: "Run twice, verify no changes on second run"
+  
+  test_matrix:
+    distributions:
+      - "Ubuntu 22.04"
+      - "Debian 11"
+      - "Fedora 38"
+    relay_types:
+      - "standard"
+      - "exit"
+      - "socks"
+    architectures:
+      - "amd64"
+      - "arm64"
+
+# ==========================================
+# Documentation Requirements
+# ==========================================
+documentation:
+  variable_documentation:
+    required: true
+    location: "defaults/main.yml"
+    format: |
+      ---
+      # [Category]
+      # [Description of variable purpose and constraints]
+      variable_name: default_value
+  
+  task_documentation:
+    inline_comments: true
+    for_complex_logic: true
+    
+  role_documentation:
+    required: true
+    location: "README.md"
+    sections:
+      - "Role Name"
+      - "Description"
+      - "Requirements"
+      - "Role Variables"
+      - "Dependencies"
+      - "Example Playbook"
+      - "License"
+      - "Author Information"
+
+# ==========================================
+# File Structure Awareness
+# ==========================================
+file_structure:
+  roles:
+    - "docker_setup"          # Docker installation
+    - "anon_relay_base"       # Base relay setup (shared)
+    - "anon_relay_standard"   # Standard relay config
+    - "anon_relay_exit"       # Exit relay config (HIGH legal risk)
+    - "anon_relay_socks"      # SOCKS proxy config
+    - "anon_relay_monitor"    # Monitoring (Nyx)
+    - "security_hardening"    # SSH, UFW, Fail2Ban
+    - "network_config"        # Port forwarding, firewall
+  
+  playbooks:
+    - "site.yml"              # Main playbook
+    - "deploy_standard.yml"   # Standard relay deployment
+    - "deploy_exit.yml"       # Exit relay deployment
+    - "deploy_socks.yml"      # SOCKS proxy deployment
+    - "update.yml"            # Update existing relays
+    - "remove.yml"            # Cleanup playbook
+    - "harden.yml"            # Security hardening
+  
+  variables:
+    - "group_vars/all.yml"              # Global settings
+    - "group_vars/standard_relays.yml"  # Standard relay vars
+    - "group_vars/exit_relays.yml"      # Exit relay vars
+    - "group_vars/socks_proxies.yml"    # SOCKS proxy vars
+
+# ==========================================
+# AI Assistant Prompts
+# ==========================================
+ai_prompts:
+  effective_prompts:
+    - "Generate an Ansible task that [requirement] following AGENTS.md standards"
+    - "Refactor this to be idempotent and use native modules"
+    - "Add error handling with block/rescue to this task"
+    - "Create a Jinja2 template for [config] with proper variable substitution"
+    - "Review this code for security issues and idempotency"
+  
+  context_to_include:
+    - "Relay type (standard/exit/socks)"
+    - "Platform requirements (Ubuntu/Debian/Fedora)"
+    - "Idempotency requirement"
+    - "Security considerations"
+    - "Variable naming (anon_* prefix)"
+  
+  reference_files:
+    - "AGENTS.md for universal standards"
+    - "CLAUDE.md for AI-specific patterns"
+    - "DEVELOPMENT_PLAN.md for project architecture"
+    - "group_vars/*.yml for variable examples"
+
+# ==========================================
+# Security Checklist
+# ==========================================
+security_checklist:
+  for_every_task:
+    - "No hardcoded secrets"
+    - "Using Ansible Vault variables: {{ vault_* }}"
+    - "File permissions set explicitly (600/644/755)"
+    - "'no_log: true' for sensitive operations"
+    - "Exit relay legal acknowledgment verified"
+    - "SSH key authentication enforced"
+    - "Firewall rules validated for relay type"
+
+# ==========================================
+# Common Mistakes to Avoid
+# ==========================================
+common_mistakes:
+  dont:
+    - description: "Missing state parameter"
+      example: "apt: name: docker-ce"
+      
+    - description: "Hardcoded values instead of variables"
+      example: "path: /opt/anon"
+      
+    - description: "Shell without changed_when"
+      example: "shell: docker ps | grep anon"
+      
+    - description: "Generic variable names"
+      example: "port: 9001"
+      
+    - description: "Ignoring platform differences"
+      example: "Using apt on Fedora"
+  
+  do:
+    - description: "Explicit state parameter"
+      example: "apt: name: docker-ce state: present"
+      
+    - description: "Parameterized values"
+      example: "path: '{{ anon_base_dir }}'"
+      
+    - description: "Shell with changed_when"
+      example: "shell: docker ps | grep anon changed_when: false"
+      
+    - description: "Namespaced variables"
+      example: "anon_relay_or_port: 9001"
+      
+    - description: "Platform-specific task files"
+      example: "include_tasks: '{{ ansible_distribution | lower }}.yml'"
+
+# ==========================================
+# Quick Reference
+# ==========================================
+quick_reference:
+  deployment_commands:
+    - "ansible-playbook -i inventory.ini deploy_standard.yml"
+    - "ansible-playbook -i inventory.ini deploy_exit.yml -e 'anon_exit_legal_acknowledged=true'"
+    - "ansible-playbook -i inventory.ini deploy_socks.yml"
+    - "ansible-playbook -i inventory.ini site.yml --check  # Dry run"
+    - "ansible-playbook -i inventory.ini site.yml -vvv     # Verbose"
+  
+  testing_commands:
+    - "ansible-lint site.yml"
+    - "yamllint ."
+    - "ansible-playbook site.yml --syntax-check"
+    - "pre-commit run --all-files"
+  
+  monitoring_commands:
+    - "ansible relays -i inventory.ini -m shell -a 'docker ps | grep anon'"
+    - "ansible relays -i inventory.ini -m shell -a 'docker logs anon-relay'"
+
+# ==========================================
+# Version Information
+# ==========================================
+metadata:
+  config_version: "2.0.0"
+  last_updated: "2025-10-27"
+  maintained_by: "Development Team"
+  status: "production"
+  
+  changelog:
+    - version: "2.0.0"
+      date: "2025-10-27"
+      changes:
+        - "Added exit relay support with legal guidance"
+        - "Added SOCKS proxy support"
+        - "Enhanced security hardening"
+        - "Added comprehensive AI agent configuration"

@@ -1,0 +1,472 @@
+---
+title: Ansible Anon Relay Deployment - Main Rules
+ruleType: always
+version: 2.0.0
+tags:
+  - ansible
+  - infrastructure
+  - anyone-protocol
+  - docker
+  - devops
+---
+
+# Ansible Anyone Protocol Anon Relay Deployment
+
+## 🎯 Project Overview
+
+**Project:** anon-relay-ansible-deployment  
+**Version:** 2.0.0  
+**Purpose:** Automate deployment of Anyone Protocol Anon Relay nodes via Docker  
+**Type:** Infrastructure as Code (IaC) - Ansible Playbooks  
+**Relay Types:** Standard Relay, Exit Relay, SOCKS Proxy  
+**Platforms:** Ubuntu, Debian, Fedora (amd64/arm64)
+
+---
+
+## 🚨 CRITICAL RULES - ALWAYS FOLLOW
+
+### 1. IDEMPOTENCY IS MANDATORY
+Every Ansible task MUST be idempotent (safe to run multiple times without side effects).
+
+**Required Practices:**
+- Use `state` parameter explicitly in every task
+- Add `changed_when` to all shell/command tasks
+- Implement proper conditionals with `when`
+- Verify idempotency by running playbook twice
+
+**Example:**
+```yaml
+✅ CORRECT:
+- name: Ensure Docker is installed
+  apt:
+    name: docker-ce
+    state: present
+    update_cache: yes
+  become: yes
+
+❌ INCORRECT:
+- name: Install Docker
+  shell: apt-get install docker-ce
+```
+
+### 2. SECURITY FIRST
+- **NEVER** commit secrets, passwords, or API keys
+- Use Ansible Vault for ALL sensitive data: `{{ vault_variable_name }}`
+- Set restrictive file permissions: 600 (secrets), 644 (configs), 755 (executables)
+- Add `no_log: true` to tasks handling sensitive data
+- Namespace variables with `anon_` prefix
+
+### 3. CROSS-PLATFORM COMPATIBILITY
+- Support Ubuntu, Debian, AND Fedora
+- Use distribution-agnostic modules when possible
+- Abstract platform-specific logic into separate task files
+- Test on both amd64 and arm64 architectures
+
+### 4. NATIVE ANSIBLE MODULES PREFERRED
+- Use native Ansible modules instead of shell commands
+- Only use shell/command when no module exists
+- Document why shell is necessary when used
+
+---
+
+## 📋 PROJECT STRUCTURE AWARENESS
+
+### Relay Types
+1. **Standard Relay:** Middle/guard relay (low maintenance, home-suitable)
+2. **Exit Relay:** Final hop to internet (HIGH legal risk, NOT for home)
+3. **SOCKS Proxy:** Local network proxy (experimental, LAN only)
+
+### Key Directories
+```
+roles/
+├── docker_setup/          # Docker installation
+├── anon_relay_base/       # Base relay setup (shared)
+├── anon_relay_standard/   # Standard relay config
+├── anon_relay_exit/       # Exit relay config
+├── anon_relay_socks/      # SOCKS proxy config
+├── anon_relay_monitor/    # Monitoring (Nyx)
+├── security_hardening/    # SSH, UFW, Fail2Ban
+└── network_config/        # Port forwarding, firewall
+
+group_vars/
+├── all.yml                # Global settings
+├── standard_relays.yml    # Standard relay vars
+├── exit_relays.yml        # Exit relay vars
+└── socks_proxies.yml      # SOCKS proxy vars
+```
+
+---
+
+## 💻 CODE GENERATION PATTERNS
+
+### Task Structure Template
+```yaml
+- name: [Verb] [what] [optional context]
+  [module_name]:
+    [parameter]: [value]
+    state: [present|absent|started|stopped]
+  become: [yes|no]
+  tags:
+    - [tag1]
+    - [tag2]
+  when: [condition]
+  changed_when: [condition for shell tasks]
+  failed_when: [condition]
+  notify: [handler_name]
+```
+
+### Error Handling Pattern
+```yaml
+- name: Task with comprehensive error handling
+  block:
+    - name: Main task
+      [module]:
+        [params]
+  
+  rescue:
+    - name: Handle error
+      debug:
+        msg: "Error occurred: {{ ansible_failed_result }}"
+    
+    - name: Cleanup on failure
+      [cleanup_task]
+  
+  always:
+    - name: Always execute
+      [always_task]
+```
+
+### Platform-Specific Pattern
+```yaml
+# tasks/main.yml
+- name: Include distribution-specific tasks
+  include_tasks: "{{ ansible_distribution | lower }}.yml"
+
+# tasks/ubuntu.yml
+- name: Ubuntu-specific tasks
+  apt:
+    name: package
+    state: present
+
+# tasks/fedora.yml
+- name: Fedora-specific tasks
+  dnf:
+    name: package
+    state: present
+```
+
+---
+
+## 🔧 VARIABLE NAMING CONVENTIONS
+
+### Required Format
+- **Prefix:** ALL variables MUST start with `anon_`
+- **Style:** snake_case only
+- **Descriptive:** Avoid abbreviations
+
+### Examples
+```yaml
+✅ CORRECT:
+anon_relay_nickname: "MyRelay"
+anon_docker_image: "svforte/anon:latest"
+anon_relay_or_port: 9001
+anon_relay_bandwidth_rate: "100 MBytes"
+anon_exit_legal_acknowledged: true
+
+❌ INCORRECT:
+relay_name: "MyRelay"          # Missing anon_ prefix
+anonPort: 9001                 # camelCase instead of snake_case
+r_bw: "100 MBytes"             # Abbreviated
+dockerImg: "svforte/anon"      # Missing anon_ prefix
+```
+
+---
+
+## 📝 DOCUMENTATION REQUIREMENTS
+
+### Variable Documentation
+Every variable in `defaults/main.yml` MUST have a comment:
+```yaml
+---
+# Docker Configuration
+# Docker edition to install (ce = Community Edition)
+docker_edition: 'ce'
+
+# Anon Relay Configuration
+# Relay nickname displayed on Anyone network (max 19 characters, alphanumeric)
+anon_relay_nickname: "MyAnonRelay"
+
+# Contact email for relay operator (publicly visible, required)
+anon_relay_contact: "operator@example.com"
+```
+
+### Task Documentation
+Complex tasks need inline comments:
+```yaml
+- name: Configure exit relay with restrictive policy
+  template:
+    src: anonrc_exit.j2
+    dest: /opt/anon/etc/anon/anonrc
+    mode: '0644'
+  # Exit policy blocks high-risk ports (SMTP, RDP, etc.)
+  # See DEVELOPMENT_PLAN.md Phase 5 for policy rationale
+  notify: restart anon relay
+```
+
+---
+
+## 🎯 RELAY-SPECIFIC RULES
+
+### Standard Relay
+```yaml
+# Required settings
+anon_relay_type: "standard"
+anon_relay_or_port: 9001
+anon_relay_socks_port: 0  # MUST be disabled
+
+# Port forwarding required
+anon_port_forward_required: true
+```
+
+### Exit Relay
+```yaml
+# CRITICAL: Legal acknowledgment required
+anon_exit_legal_acknowledged: true  # MUST be set
+
+# Exit policy MUST be restrictive
+anon_relay_exit_policy:
+  - "reject *:25"      # Block SMTP
+  - "reject *:587"     # Block SMTP Submission
+  - "reject *:3389"    # Block RDP
+  - "accept *:*"       # Allow others
+
+# Enhanced security REQUIRED
+anon_ssh_port: [non-standard]  # NOT 22
+anon_fail2ban_enabled: true
+anon_dos_circuit_creation_enabled: true
+```
+
+### SOCKS Proxy
+```yaml
+# Local network only
+anon_relay_type: "socks"
+anon_relay_or_port: 0  # MUST be disabled
+anon_socks_bind_address: "192.168.x.x"  # LAN IP only
+anon_socks_policy_accept: "192.168.x.0/24"  # Subnet only
+```
+
+---
+
+## ✅ TESTING REQUIREMENTS
+
+Before committing ANY code, run:
+```bash
+# 1. Syntax check
+ansible-playbook [file].yml --syntax-check
+
+# 2. Lint check
+ansible-lint [file].yml
+
+# 3. YAML validation
+yamllint [file].yml
+
+# 4. Dry run
+ansible-playbook -i inventory.ini [file].yml --check
+
+# 5. Idempotency test (run twice, verify no changes)
+ansible-playbook -i inventory.ini [file].yml
+ansible-playbook -i inventory.ini [file].yml  # Should show 0 changes
+```
+
+---
+
+## 🚫 COMMON MISTAKES TO AVOID
+
+### ❌ DON'T DO THIS
+```yaml
+# Missing state parameter
+- name: Install package
+  apt:
+    name: docker-ce
+
+# Hardcoded values
+- name: Create directory
+  file:
+    path: /opt/anon
+    state: directory
+
+# Shell without changed_when
+- name: Check status
+  shell: docker ps | grep anon
+
+# Generic variable names
+- name: Set port
+  set_fact:
+    port: 9001
+```
+
+### ✅ DO THIS
+```yaml
+# Explicit state parameter
+- name: Ensure Docker is installed
+  apt:
+    name: docker-ce
+    state: present
+
+# Parameterized values
+- name: Ensure anon directory exists
+  file:
+    path: "{{ anon_base_dir }}"
+    state: directory
+    mode: '0755'
+
+# Shell with changed_when
+- name: Check anon relay status
+  shell: docker ps | grep anon-relay
+  register: relay_status
+  changed_when: false
+  failed_when: false
+
+# Namespaced variables
+- name: Set relay OR port
+  set_fact:
+    anon_relay_or_port: 9001
+```
+
+---
+
+## 🔐 SECURITY CHECKLIST
+
+For every task handling sensitive data:
+- [ ] No hardcoded secrets
+- [ ] Using Ansible Vault variables: `{{ vault_* }}`
+- [ ] File permissions set explicitly (600/644/755)
+- [ ] `no_log: true` added if displaying sensitive info
+- [ ] Exit relay legal acknowledgment verified
+- [ ] SSH key authentication enforced (not passwords)
+- [ ] Firewall rules validated for relay type
+
+---
+
+## 📚 REFERENCE DOCUMENTATION
+
+**MUST READ BEFORE CODING:**
+1. **AGENTS.md** - Universal coding standards
+2. **DEVELOPMENT_PLAN.md** - Project architecture and phases
+3. **README.md** - User documentation
+
+**Role Documentation:**
+Each role has a README.md with:
+- Role purpose and description
+- Variables (all documented)
+- Dependencies
+- Example usage
+- Testing procedures
+
+---
+
+## 🎨 JINJA2 TEMPLATE PATTERNS
+
+### Template Header
+```jinja2
+{# {{ ansible_managed }} #}
+{# Anon Relay Configuration #}
+{# Generated: {{ template_run_date }} #}
+{# Host: {{ inventory_hostname }} #}
+{# Relay Type: {{ anon_relay_type }} #}
+
+```
+
+### Conditional Blocks
+```jinja2
+{% if anon_relay_bandwidth_rate is defined %}
+BandwidthRate {{ anon_relay_bandwidth_rate }}
+{% endif %}
+
+{% if anon_relay_type == "exit" %}
+ExitRelay 1
+{% for policy in anon_relay_exit_policy %}
+ExitPolicy {{ policy }}
+{% endfor %}
+{% else %}
+SocksPort 0
+{% endif %}
+```
+
+---
+
+## 💡 QUICK REFERENCE COMMANDS
+
+```bash
+# Ansible Operations
+ansible-playbook -i inventory.ini deploy_standard.yml
+ansible-playbook -i inventory.ini deploy_exit.yml -e "anon_exit_legal_acknowledged=true"
+ansible-playbook -i inventory.ini deploy_socks.yml
+ansible-playbook -i inventory.ini site.yml --check  # Dry run
+ansible-playbook -i inventory.ini site.yml --tags docker  # Selective
+ansible-playbook -i inventory.ini site.yml -vvv  # Verbose
+
+# Testing
+ansible-lint site.yml
+yamllint .
+ansible-playbook site.yml --syntax-check
+
+# Monitoring
+ansible relays -i inventory.ini -m shell -a "docker ps | grep anon"
+ansible relays -i inventory.ini -m shell -a "docker logs anon-relay"
+```
+
+---
+
+## 🎯 CONTEXT FILES
+
+When generating code, reference these files for context:
+- **AGENTS.md** → Universal standards and patterns
+- **CLAUDE.md** → AI-specific optimization patterns
+- **DEVELOPMENT_PLAN.md** → Project phases and architecture
+- **group_vars/*.yml** → Variable examples
+- **roles/*/README.md** → Role-specific documentation
+
+---
+
+## 📊 RELAY TYPE DECISION MATRIX
+
+| Feature | Standard | Exit | SOCKS |
+|---------|----------|------|-------|
+| Home Hosting | ✅ Yes | ❌ NO | ✅ Yes |
+| Port Forward | ✅ Required | ✅ Required | ❌ Not needed |
+| Legal Risk | Low | **HIGH** | Low |
+| Maintenance | Low | High | Low |
+| Security Level | Standard | **Enhanced** | Standard |
+
+---
+
+## 🚀 AI ASSISTANT USAGE
+
+When using Cursor AI for this project:
+
+**Effective Prompts:**
+```
+"Generate an Ansible task that [requirement] following AGENTS.md standards"
+"Refactor this to be idempotent and use native modules"
+"Add error handling with block/rescue to this task"
+"Create a Jinja2 template for [config] with proper variable substitution"
+```
+
+**Always Include:**
+- Relay type context (standard/exit/socks)
+- Platform requirements (Ubuntu/Debian/Fedora)
+- Idempotency requirement
+- Security considerations
+- Variable naming (anon_* prefix)
+
+---
+
+**Version:** 2.0.0  
+**Last Updated:** 2025-10-27  
+**Status:** Production  
+**Maintainer:** Development Team
+
+---
+
+*This is a living document. Update it as patterns evolve and new best practices emerge.*

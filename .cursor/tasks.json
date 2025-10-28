@@ -1,0 +1,256 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Ansible: Syntax Check All Playbooks",
+      "type": "shell",
+      "command": "ansible-playbook",
+      "args": ["--syntax-check", "site.yml", "deploy_standard.yml", "deploy_exit.yml", "deploy_socks.yml"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Ansible: Lint All Files",
+      "type": "shell",
+      "command": "ansible-lint",
+      "args": ["--profile=production", "."],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "YAML: Lint All Files",
+      "type": "shell",
+      "command": "yamllint",
+      "args": ["."],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Deploy: Standard Relay (Check Mode)",
+      "type": "shell",
+      "command": "ansible-playbook",
+      "args": ["-i", "inventory.ini", "deploy_standard.yml", "--check"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Deploy: Standard Relay",
+      "type": "shell",
+      "command": "ansible-playbook",
+      "args": ["-i", "inventory.ini", "deploy_standard.yml"],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Deploy: Exit Relay (Check Mode)",
+      "type": "shell",
+      "command": "ansible-playbook",
+      "args": ["-i", "inventory.ini", "deploy_exit.yml", "--check", "-e", "anon_exit_legal_acknowledged=true"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Deploy: SOCKS Proxy (Check Mode)",
+      "type": "shell",
+      "command": "ansible-playbook",
+      "args": ["-i", "inventory.ini", "deploy_socks.yml", "--check"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Test: Idempotency (Standard Relay)",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-c", "ansible-playbook -i inventory.ini deploy_standard.yml && ansible-playbook -i inventory.ini deploy_standard.yml"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Test: Connection to All Hosts",
+      "type": "shell",
+      "command": "ansible",
+      "args": ["all", "-i", "inventory.ini", "-m", "ping"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Monitoring: Check Relay Status",
+      "type": "shell",
+      "command": "ansible",
+      "args": ["relays", "-i", "inventory.ini", "-m", "shell", "-a", "docker ps | grep anon"],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Monitoring: View Relay Logs",
+      "type": "shell",
+      "command": "ansible",
+      "args": ["relays", "-i", "inventory.ini", "-m", "shell", "-a", "docker logs anon-relay --tail 50"],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup: Install Python Dependencies",
+      "type": "shell",
+      "command": "pip",
+      "args": ["install", "-e", ".[dev]"],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup: Install Ansible Collections",
+      "type": "shell",
+      "command": "ansible-galaxy",
+      "args": ["collection", "install", "-r", "requirements.yml"],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup: Install Pre-commit Hooks",
+      "type": "shell",
+      "command": "pre-commit",
+      "args": ["install"],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Git: Run Pre-commit Hooks",
+      "type": "shell",
+      "command": "pre-commit",
+      "args": ["run", "--all-files"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Docs: Generate Role Documentation",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-c", "for role in roles/*/; do echo \"$role\"; ansible-doc -t role \"$(basename $role)\"; done"],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean: Remove Ansible Retry Files",
+      "type": "shell",
+      "command": "find",
+      "args": [".", "-name", "*.retry", "-delete"],
+      "group": "none",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Vault: Encrypt Secrets File",
+      "type": "shell",
+      "command": "ansible-vault",
+      "args": ["encrypt", "${input:vaultFile}"],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Vault: Decrypt Secrets File",
+      "type": "shell",
+      "command": "ansible-vault",
+      "args": ["decrypt", "${input:vaultFile}"],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Vault: Edit Secrets File",
+      "type": "shell",
+      "command": "ansible-vault",
+      "args": ["edit", "${input:vaultFile}"],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "vaultFile",
+      "type": "promptString",
+      "description": "Enter the vault file path:",
+      "default": "group_vars/all/vault.yml"
+    }
+  ]
+}
