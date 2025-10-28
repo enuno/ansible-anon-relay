@@ -1,7 +1,8 @@
 # Ansible Playbook for Anyone Protocol Anon Relay Deployment
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Ansible](https://img.shields.io/badge/ansible-2.15%2B-green.svg)
+![Ansible](https://img.shields.io/badge/ansible-8.5%2B-green.svg)
+![Ansible Core](https://img.shields.io/badge/ansible--core-2.15%2B-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Ubuntu%20%7C%20Debian%20%7C%20Fedora-orange.svg)
 ![Architecture](https://img.shields.io/badge/architecture-amd64%20%7C%20arm64-lightgrey.svg)
 
@@ -34,7 +35,7 @@ Automated deployment of **Anyone Protocol Anon Relay** nodes via Docker using An
 ## ⚡ Prerequisites
 
 ### Control Node (Your Local Machine)
-- **Ansible:** 2.15 or higher
+- **Ansible:** 8.5.0 or higher (includes ansible-core 2.15+)
 - **Python:** 3.8 or higher
 - **SSH Client:** OpenSSH
 
