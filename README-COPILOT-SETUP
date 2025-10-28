@@ -1,0 +1,277 @@
+# README-COPILOT-SETUP.md - GitHub Copilot Configuration Guide
+
+## 🚀 GitHub Copilot Setup for Ansible Project
+
+This guide helps you configure GitHub Copilot for optimal code generation in this Ansible automation project.
+
+---
+
+## 📋 Prerequisites
+
+- GitHub Copilot subscription (Individual or Business)
+- Visual Studio Code or compatible IDE
+- GitHub Copilot extension installed
+
+---
+
+## ⚙️ Configuration Files
+
+### 1. `.github/copilot-instructions.md`
+Project-level instructions for Copilot (automatically detected).
+
+### 2. Workspace Settings
+Create `.vscode/settings.json` with Ansible-specific configuration:
+
+```json
+{
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": true,
+    "ansible": true,
+    "jinja2": true
+  },
+  "github.copilot.advanced": {
+    "debug.overrideEngine": "gpt-4",
+    "debug.testOverrideProxyUrl": "",
+    "debug.overrideProxyUrl": ""
+  }
+}
+```
+
+---
+
+## 🎯 Using Copilot in This Project
+
+### Inline Suggestions
+
+Copilot will suggest code as you type. For Ansible tasks:
+
+```yaml
+# Type this comment:
+# Create directory for anon relay configuration
+
+# Copilot suggests:
+- name: Ensure anon configuration directory exists
+  file:
+    path: /opt/anon/etc/anon
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  become: yes
+```
+
+### Copilot Chat
+
+Use Copilot Chat for:
+- "Generate an Ansible task that installs Docker on Ubuntu"
+- "Refactor this task to be idempotent"
+- "Add error handling to this playbook"
+- "Explain this Jinja2 template"
+
+### Context Files
+
+Copilot automatically uses these files for context:
+- `AGENTS.md` - Coding standards
+- `CLAUDE.md` - AI agent patterns
+- `README.md` - Project overview
+- `ansible.cfg` - Ansible configuration
+
+---
+
+## 💡 Best Practices
+
+### 1. Use Descriptive Comments
+```yaml
+# Install Docker CE and required plugins on Debian-based systems
+# Supports Ubuntu 20.04+ and Debian 10+
+# Sets up Docker with community.docker collection
+```
+
+### 2. Leverage Copilot for Boilerplate
+Let Copilot generate:
+- Role directory structures
+- Variable documentation
+- Common Ansible patterns
+- Error handling blocks
+
+### 3. Review and Verify
+Always review Copilot suggestions for:
+- Idempotency (can run multiple times safely)
+- Security (no hardcoded secrets)
+- Cross-platform compatibility
+- Proper error handling
+
+### 4. Train Copilot with Context
+Open related files to give Copilot better context:
+- `group_vars/all.yml` - Global variables
+- `defaults/main.yml` - Role defaults
+- Existing similar roles
+
+---
+
+## 🔧 Copilot Commands
+
+### In VS Code
+
+| Command | Shortcut | Purpose |
+|---------|----------|---------|
+| Accept suggestion | `Tab` | Accept current suggestion |
+| Next suggestion | `Alt+]` | Cycle to next suggestion |
+| Previous suggestion | `Alt+[` | Cycle to previous suggestion |
+| Trigger suggestions | `Alt+\` | Manually trigger Copilot |
+| Copilot Chat | `Ctrl+Shift+I` | Open Copilot Chat |
+
+---
+
+## 📚 Example Prompts for Copilot Chat
+
+### Task Generation
+```
+Generate an Ansible task that:
+- Installs Nyx monitoring tool
+- Supports Ubuntu, Debian, and Fedora
+- Is idempotent
+- Includes error handling
+```
+
+### Debugging
+```
+This Ansible task is failing with "Permission denied":
+[paste task]
+
+Help me fix it with proper become and file permissions.
+```
+
+### Refactoring
+```
+Refactor this shell command to use native Ansible modules:
+[paste task with shell command]
+```
+
+### Template Creation
+```
+Create a Jinja2 template for anonrc configuration with:
+- Relay nickname variable
+- Contact info variable
+- Bandwidth settings (optional)
+- Conditional IPv6 configuration
+```
+
+---
+
+## 🎨 Project-Specific Guidelines for Copilot
+
+### Variable Names
+Copilot will learn your naming convention:
+- Prefix: `anon_`
+- Style: `snake_case`
+- Examples: `anon_relay_nickname`, `anon_docker_image`
+
+### Task Structure
+Copilot follows this pattern:
+```yaml
+- name: Verb + what + context
+  module_name:
+    param: value
+    state: present
+  become: yes
+  tags: [tag1, tag2]
+  when: condition
+```
+
+### Error Handling
+Copilot generates block/rescue:
+```yaml
+- name: Task with error handling
+  block:
+    - name: Main task
+      # task here
+  rescue:
+    - name: Handle error
+      # error handling
+  always:
+    - name: Cleanup
+      # always runs
+```
+
+---
+
+## 🚨 Important Reminders
+
+### Security
+- **NEVER** let Copilot suggest actual secrets
+- Always use Ansible Vault variables: `{{ vault_variable }}`
+- Review file permissions (600/644/755)
+
+### Idempotency
+- Verify suggested tasks can run multiple times
+- Check for `changed_when` in shell commands
+- Ensure `state` parameter is explicit
+
+### Documentation
+- Accept Copilot's documentation suggestions
+- Enhance with project-specific context
+- Keep AGENTS.md principles in mind
+
+---
+
+## 🔍 Troubleshooting
+
+### Copilot Not Suggesting
+1. Check extension is enabled
+2. Verify file is recognized as Ansible (`.yml`, `.yaml`)
+3. Ensure you're signed in to GitHub
+4. Try restarting VS Code
+
+### Poor Suggestions
+1. Add more context with comments
+2. Open related files for better context
+3. Use Copilot Chat for complex requirements
+4. Manually edit and Copilot will learn
+
+### Wrong Patterns
+1. Check `.github/copilot-instructions.md` is present
+2. Reference AGENTS.md in your prompt
+3. Provide examples of desired pattern
+
+---
+
+## 📊 Monitoring Copilot Usage
+
+### VS Code
+- View Copilot status in status bar
+- Check suggestion acceptance rate
+- Review Copilot completions in output panel
+
+### Improve Suggestions
+- Accept good suggestions (trains the model)
+- Reject bad suggestions (improves future suggestions)
+- Provide feedback via Copilot feedback button
+
+---
+
+## 🎓 Learning Resources
+
+- [GitHub Copilot Docs](https://docs.github.com/en/copilot)
+- [Copilot in VS Code](https://code.visualstudio.com/docs/editor/github-copilot)
+- [Ansible Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
+- [Project AGENTS.md](./AGENTS.md) - Our coding standards
+
+---
+
+## 📞 Support
+
+- Project issues: [GitHub Issues](https://github.com/your-repo/issues)
+- Copilot issues: [GitHub Support](https://support.github.com/)
+- Community: [GitHub Discussions](https://github.com/your-repo/discussions)
+
+---
+
+**Version:** 1.0.0  
+**Last Updated:** 2025-10-27  
+**Project:** anon-relay-ansible-deployment
+
+---
+
+*Use GitHub Copilot responsibly. Always review, test, and understand generated code before committing.*

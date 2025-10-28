@@ -1,0 +1,250 @@
+# Aider configuration for Ansible project
+# https://aider.chat/docs/config/aider_conf.html
+
+##########################################################
+# Aider Configuration for Anon Relay Ansible Project
+##########################################################
+
+#############
+# Main model:
+## Specify the model to use for the main chat
+model: claude-3-5-sonnet-20241022
+
+########################
+# Model settings:
+## Use stronger model for editing
+#edit-format: architect
+
+########################
+# Git settings:
+## Automatically commit changes with a descriptive message
+auto-commits: true
+
+## Use conventional commit messages
+commit: true
+
+## Commit message template
+#commit-prompt: "feat|fix|docs|style|refactor|test|chore"
+
+########################
+# Files to read:
+## Files that aider should always have context from
+read:
+  - AGENTS.md
+  - CLAUDE.md
+  - DEVELOPMENT_PLAN.md
+  - README.md
+  - ansible.cfg
+  - requirements.yml
+
+########################
+# Linting:
+## Run linters before committing
+lint: true
+
+## Lint command for Ansible
+lint-cmd: "ansible-lint --profile=production {file_list}"
+
+########################
+# Testing:
+## Auto-test command after changes
+#auto-test: false
+#test-cmd: "ansible-playbook {file_list} --syntax-check"
+
+########################
+# Editor:
+## Text editor for /editor command
+#editor: vim
+
+########################
+# Git settings:
+## Disable git operations if needed
+#git: true
+
+## Dirty commits (commit dirty repo before making changes)
+dirty-commits: true
+
+## Attribute commits to author
+#attribute-author: true
+#attribute-committer: true
+
+########################
+# UI settings:
+## Dark mode
+#dark-mode: true
+
+## Pretty print
+pretty: true
+
+## Stream responses
+stream: true
+
+## Show diffs
+show-diffs: true
+
+########################
+# Chat settings:
+## Message file for storing conversation history
+message-file: .aider.chat.history.md
+
+## Input history file
+input-history-file: .aider.input.history
+
+## Restore chat history
+#restore-chat-history: true
+
+########################
+# Code settings:
+## Map refresh (refresh repo map)
+map-refresh: auto
+
+## Map multiplier for token budget
+#map-tokens: 1024
+
+## Show repository map
+show-repo-map: true
+
+## Use repo map
+#no-repo-map: false
+
+########################
+# Suggestions:
+## Suggest shell commands
+#suggest-shell-commands: true
+
+########################
+# Voice settings:
+## Voice language
+#voice-language: en
+
+########################
+# Cache settings:
+## Use environment variables cache
+#env-file: .env
+
+########################
+# Ansible-specific settings:
+
+## Additional read files for Ansible context
+#read:
+#  - group_vars/all.yml
+#  - group_vars/relays.yml
+#  - inventory.ini
+
+## Subtree only (work in specific directory)
+#subtree-only: false
+
+########################
+# Watch settings:
+## Watch for file changes and auto-reload
+#watch: false
+
+########################
+# Architect mode for complex changes:
+## Use architect mode for large refactors
+#architect: false
+
+########################
+# Fancy input:
+## Use fancy readline-style input
+#fancy-input: true
+
+########################
+# Aider asks to add files:
+#auto-add: false
+
+########################
+# Map settings:
+## Show map in sidebar
+#map: true
+
+########################
+# Check update:
+## Check for aider updates
+#check-update: true
+
+########################
+# Analytics:
+## Send analytics to aider
+analytics: false
+
+########################
+# Verify SSL:
+#verify-ssl: true
+
+########################
+# Encoding:
+#encoding: utf-8
+
+########################
+# Verbose:
+## Verbose output
+#verbose: false
+
+########################
+# Apply edits:
+#apply: true
+
+########################
+# Show prompts:
+#show-prompts: false
+
+########################
+# Exit on error:
+#exit-on-error: false
+
+########################
+# File list in prompt:
+#file-list: true
+
+########################
+# Chat language:
+#chat-language: English
+
+########################
+# Weak model (for commit messages, etc):
+#weak-model: gpt-3.5-turbo
+
+########################
+# Sonnet mode (use Claude Sonnet):
+#sonnet: false
+
+########################
+# Opus mode (use Claude Opus):
+#opus: false
+
+########################
+# GPT-4 settings:
+#4: false
+#4-turbo: false
+
+########################
+# Code style preferences for Ansible:
+# (These are guidelines, not enforced by aider)
+
+# Preferred patterns:
+# - Use 2-space indentation for YAML
+# - Namespace variables with anon_ prefix
+# - Always specify state parameter
+# - Use native Ansible modules over shell
+# - Implement idempotency checks
+# - Add proper error handling with block/rescue
+# - Document all variables in defaults/main.yml
+# - Include comprehensive README.md for roles
+
+########################
+# Project-specific instructions:
+
+# When working on this project:
+# 1. Read AGENTS.md for universal standards
+# 2. Read CLAUDE.md for AI-specific guidance
+# 3. All Ansible tasks must be idempotent
+# 4. Use Ansible Vault for secrets
+# 5. Test with: ansible-playbook --syntax-check and ansible-lint
+# 6. Support Ubuntu, Debian, and Fedora
+# 7. Document all changes in CHANGELOG.md
+
+########################
+# Example usage:
+# aider --model claude-3-5-sonnet-20241022 --read AGENTS.md roles/docker_setup/tasks/main.yml
+# aider --lint --auto-commits site.yml

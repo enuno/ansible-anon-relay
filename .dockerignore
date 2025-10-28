@@ -1,0 +1,81 @@
+# .dockerignore for Ansible Project
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Documentation
+docs/
+*.md
+!README.md
+LICENSE
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
+
+# Testing
+.tox/
+.pytest_cache/
+.coverage
+.hypothesis/
+tests/
+test/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Ansible specific
+*.retry
+.ansible/
+molecule/
+.molecule/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# Secrets (CRITICAL - never include in Docker images)
+*.pem
+*.key
+*.crt
+secrets/
+credentials/
+.env
+.vault_pass
+group_vars/*/vault.yml
+host_vars/*/vault.yml
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

@@ -1,0 +1,249 @@
+# .clinerules - Cline AI Agent Configuration for Ansible Project
+
+## Project Context
+- **Type:** Infrastructure as Code (IaC) - Ansible Playbook
+- **Purpose:** Deploy Anyone Protocol Anon Relay nodes (Standard, Exit, SOCKS)
+- **Language:** YAML (Ansible), Jinja2 (Templates)
+- **Target:** Ubuntu, Debian, Fedora (amd64/arm64)
+
+## Core Development Principles
+
+### 1. Documentation-Driven Development
+- Read AGENTS.md before starting any task
+- Update documentation alongside code changes
+- Follow Ansible best practices for role documentation
+- Document all variables with purpose and examples
+
+### 2. Idempotency is Mandatory
+- ALL Ansible tasks must be idempotent (safe to run multiple times)
+- Use `changed_when`, `failed_when` for shell commands
+- Test each task at least twice to verify idempotency
+- Never modify state without proper conditionals
+
+### 3. Security First
+- NEVER commit secrets to version control
+- Use Ansible Vault for sensitive data
+- Set restrictive file permissions (600/644/755)
+- Implement principle of least privilege
+- Validate all external inputs
+
+### 4. Cross-Platform Support
+- Support Ubuntu, Debian, Fedora distributions
+- Use distribution-agnostic modules when possible
+- Abstract platform-specific logic into separate task files
+- Test on both amd64 and arm64 architectures
+
+## Coding Standards
+
+### YAML Formatting
+- Use 2-space indentation (NEVER tabs)
+- Follow Ansible-lint rules
+- Use descriptive task names (action-oriented)
+- Always specify `state` parameter explicitly
+
+### Variable Naming
+- Namespace with `anon_` prefix
+- Use snake_case for variables
+- Descriptive names (avoid abbreviations)
+- Example: `anon_relay_nickname`, `anon_docker_image`
+
+### Task Structure
+```yaml
+- name: Descriptive task name starting with verb
+  module_name:
+    parameter: value
+    state: present
+  become: yes
+  tags:
+    - tag1
+    - tag2
+  when: condition
+```
+
+### Error Handling
+- Use `block`/`rescue`/`always` for complex operations
+- Provide meaningful error messages
+- Implement pre-flight checks before destructive operations
+- Add validation tasks after critical changes
+
+## File Organization
+
+### Role Structure
+```
+roles/role_name/
+├── tasks/
+│   └── main.yml
+├── handlers/
+│   └── main.yml
+├── templates/
+│   └── file.j2
+├── defaults/
+│   └── main.yml
+├── vars/
+│   └── main.yml
+├── meta/
+│   └── main.yml
+└── README.md
+```
+
+### Playbook Structure
+- Main playbooks in project root
+- Relay-type-specific playbooks (deploy_standard.yml, deploy_exit.yml, deploy_socks.yml)
+- Use tags for selective execution
+- Include pre_tasks and post_tasks for validation
+
+## Testing Requirements
+
+### Before Committing
+1. `ansible-playbook <file> --syntax-check`
+2. `ansible-lint <file>`
+3. `yamllint .`
+4. Test on at least one target platform
+5. Verify idempotency (run twice, check for changes)
+
+### Validation Checklist
+- [ ] Code follows project conventions
+- [ ] Idempotency verified
+- [ ] Documentation updated
+- [ ] No secrets in code
+- [ ] ansible-lint passes
+- [ ] Cross-platform compatibility considered
+
+## Relay Type Specifics
+
+### Standard Relay
+- ORPort configuration (9001)
+- SocksPort disabled (0)
+- Bandwidth limits
+- IPv6 optional
+
+### Exit Relay
+- Requires legal acknowledgment
+- Restrictive exit policies
+- Exit notice HTML deployment
+- DoS mitigation required
+- Enhanced security hardening
+- Reverse DNS documentation
+
+### SOCKS Proxy
+- Local network only
+- SocksPort bound to LAN IP
+- ORPort disabled (0)
+- Experimental configuration
+
+## Workflow
+
+### When Starting a Task
+1. Read AGENTS.md and DEVELOPMENT_PLAN.md
+2. Check existing code for patterns
+3. Plan changes (what files, what tasks)
+4. Implement with error handling
+5. Test locally
+6. Update documentation
+7. Commit with conventional message
+
+### When Modifying Existing Code
+1. Understand existing implementation first
+2. Maintain consistency with current patterns
+3. Make minimal, focused changes
+4. Preserve backward compatibility
+5. Update related documentation
+6. Test idempotency
+
+### When Creating New Roles
+1. Use `ansible-galaxy init <role_name>`
+2. Follow standard role structure
+3. Document all variables in defaults/main.yml
+4. Create comprehensive README.md
+5. Add meta/main.yml dependencies
+6. Include usage examples
+
+## Common Pitfalls to Avoid
+
+### ❌ Don't Do This
+- Using shell commands without `changed_when`
+- Hardcoding values that should be variables
+- Missing `state` parameter
+- Generic variable names (e.g., `port`, `user`)
+- Ignoring platform differences
+- Skipping documentation updates
+
+### ✅ Do This
+- Use native Ansible modules
+- Create variables for all configurable values
+- Always specify `state`
+- Namespace variables (e.g., `anon_relay_port`)
+- Abstract platform logic into separate files
+- Document changes inline and in README
+
+## Integration with Other Tools
+
+### Git Workflow
+- Use feature branches
+- Conventional commit messages: `feat(role): description`
+- Pull request for all changes
+- Code review required
+
+### CI/CD Integration
+- GitHub Actions runs tests automatically
+- ansible-lint must pass
+- yamllint must pass
+- Syntax check must pass
+
+## Security Considerations
+
+### Always Check
+- No secrets in plaintext
+- Proper file permissions (600 for secrets, 644 for configs)
+- Firewall rules appropriate for relay type
+- SSH hardening for production deployments
+- Exit relay legal compliance
+
+### Ansible Vault Usage
+```yaml
+# Reference vault variables
+anon_relay_contact: "{{ vault_relay_contact }}"
+
+# Store in group_vars/all/vault.yml (encrypted)
+vault_relay_contact: "operator@example.com"
+```
+
+## Quick Reference Commands
+
+```bash
+# Test syntax
+ansible-playbook site.yml --syntax-check
+
+# Lint code
+ansible-lint site.yml
+
+# Dry run
+ansible-playbook -i inventory.ini site.yml --check
+
+# Deploy with tags
+ansible-playbook -i inventory.ini site.yml --tags docker
+
+# Verbose debugging
+ansible-playbook -i inventory.ini site.yml -vvv
+```
+
+## Resources
+- **AGENTS.md** - Universal coding standards
+- **CLAUDE.md** - Claude-specific guidance
+- **DEVELOPMENT_PLAN.md** - Project roadmap
+- **Official Docs** - https://docs.ansible.com
+- **Anyone Protocol** - https://docs.anyone.io
+
+## Notes for Cline
+- Read full context of related files before making changes
+- Ask for clarification on ambiguous requirements
+- Suggest alternatives when appropriate
+- Explain reasoning for implementation choices
+- Prioritize idempotency and security in all solutions
+- Reference official documentation when suggesting patterns
+
+---
+
+**Version:** 1.0.0  
+**Last Updated:** 2025-10-27  
+**Project:** anon-relay-ansible-deployment

@@ -1,0 +1,136 @@
+# Pre-commit configuration for Ansible project
+# See https://pre-commit.com for more information
+
+repos:
+  # Ansible linting
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v24.9.2
+    hooks:
+      - id: ansible-lint
+        name: Ansible Lint
+        description: Run ansible-lint on playbooks and roles
+        files: \.(yaml|yml)$
+        exclude: ^\.github/|requirements\.yml$
+        args:
+          - --profile=production
+          - --project-dir=.
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        name: YAML Lint
+        description: Lint YAML files
+        files: \.(yaml|yml)$
+        args:
+          - -c=.yamllint.yml
+
+  # General pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+        description: Trim trailing whitespace
+        exclude: ^\.git/
+
+      - id: end-of-file-fixer
+        name: Fix End of Files
+        description: Ensure files end with newline
+        exclude: ^\.git/
+
+      - id: check-yaml
+        name: Check YAML Syntax
+        description: Check YAML file syntax
+        exclude: ^\.github/workflows/
+
+      - id: check-added-large-files
+        name: Check for Large Files
+        description: Prevent large files from being committed
+        args: ['--maxkb=500']
+
+      - id: check-merge-conflict
+        name: Check for Merge Conflicts
+        description: Check for merge conflict markers
+
+      - id: check-case-conflict
+        name: Check Case Conflicts
+        description: Check for case-insensitive filename conflicts
+
+      - id: detect-private-key
+        name: Detect Private Keys
+        description: Prevent committing private keys
+
+      - id: mixed-line-ending
+        name: Fix Mixed Line Endings
+        description: Fix mixed line endings
+        args: ['--fix=lf']
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
+    hooks:
+      - id: markdownlint
+        name: Markdown Lint
+        description: Lint Markdown files
+        args: ['--config=.markdownlint.json']
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        name: ShellCheck
+        description: Lint shell scripts
+
+  # Secrets detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        name: Detect Secrets
+        description: Detect secrets in code
+        args: ['--baseline', '.secrets.baseline']
+
+  # Jinja2 template linting
+  - repo: https://github.com/Riverside-Healthcare/djLint
+    rev: v1.34.1
+    hooks:
+      - id: djlint
+        name: Jinja2 Template Lint
+        description: Lint Jinja2 templates
+        files: \.j2$
+        args:
+          - --reformat
+          - --indent=2
+
+# Configuration for specific file types
+files: ''
+exclude: |
+  (?x)^(
+    \.git/|
+    \.tox/|
+    \.venv/|
+    venv/|
+    __pycache__/|
+    \.pytest_cache/|
+    \.mypy_cache/|
+    \.ansible_vault/|
+    \.molecule/|
+    node_modules/|
+    \.DS_Store
+  )
+
+# CI configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

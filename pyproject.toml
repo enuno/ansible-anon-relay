@@ -1,0 +1,245 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "anon-relay-ansible-deployment"
+version = "2.0.0"
+description = "Ansible Playbook for Anyone Protocol Anon Relay Deployment (Standard, Exit, SOCKS)"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Development Team", email = "dev@example.com"}
+]
+maintainers = [
+    {name = "Development Team", email = "dev@example.com"}
+]
+keywords = [
+    "ansible",
+    "anyone-protocol",
+    "relay",
+    "docker",
+    "devops",
+    "infrastructure-as-code",
+    "automation"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "ansible>=2.15.0,<3.0.0",
+    "ansible-lint>=24.2.0",
+    "yamllint>=1.32.0",
+    "jinja2>=3.1.0",
+    "ansible-core>=2.15.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-ansible>=4.0.0",
+    "pytest-cov>=4.0.0",
+    "molecule>=6.0.0",
+    "molecule-docker>=2.1.0",
+    "pre-commit>=3.3.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.4.0",
+]
+
+testing = [
+    "pytest>=7.0.0",
+    "pytest-ansible>=4.0.0",
+    "pytest-cov>=4.0.0",
+    "molecule>=6.0.0",
+    "molecule-docker>=2.1.0",
+    "testinfra>=9.0.0",
+]
+
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "myst-parser>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/anon-relay-ansible-deployment"
+Documentation = "https://github.com/your-org/anon-relay-ansible-deployment/blob/main/README.md"
+Repository = "https://github.com/your-org/anon-relay-ansible-deployment"
+Issues = "https://github.com/your-org/anon-relay-ansible-deployment/issues"
+Changelog = "https://github.com/your-org/anon-relay-ansible-deployment/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+py-modules = []
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["library", "plugins", "filter_plugins", "module_utils"]
+exclude = ["tests*", "docs*"]
+
+# Black configuration
+[tool.black]
+line-length = 120
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | roles/external
+  | collections
+)/
+'''
+
+# isort configuration
+[tool.isort]
+profile = "black"
+line_length = 120
+known_first_party = ["library", "module_utils"]
+skip = [".venv", "venv", ".tox", "build", "dist", ".eggs"]
+
+# pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=.",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/.venv/*",
+    "*/venv/*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+# mypy configuration
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_calls = true
+disallow_any_generics = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "ansible.*"
+ignore_missing_imports = true
+
+# Flake8 configuration (in .flake8 file)
+# [flake8]
+# max-line-length = 120
+# extend-ignore = E203, W503
+# exclude = .git,__pycache__,docs,build,dist,.venv,venv
+
+# ansible-lint configuration
+[tool.ansible-lint]
+profile = "production"
+exclude_paths = [
+    ".cache/",
+    ".github/",
+    "molecule/",
+    ".molecule/",
+    ".tox/",
+]
+skip_list = []
+warn_list = []
+mock_modules = []
+mock_roles = []
+
+# yamllint configuration (in .yamllint.yml)
+# See .yamllint.yml for YAML-specific linting rules
+
+[tool.bandit]
+exclude_dirs = ["/tests", "/.venv", "/venv"]
+skips = ["B101", "B601"]
+
+[tool.pylint]
+max-line-length = 120
+disable = [
+    "C0111",  # missing-docstring
+    "C0103",  # invalid-name
+    "R0903",  # too-few-public-methods
+]
+
+[tool.autopep8]
+max_line_length = 120
+ignore = ["E203", "W503"]
+
+# Semantic versioning
+[tool.bumpversion]
+current_version = "2.0.0"
+commit = true
+tag = true
+tag_name = "v{new_version}"
+message = "chore(release): bump version {current_version} → {new_version}"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "README.md"
+search = "**Version:** {current_version}"
+replace = "**Version:** {new_version}"
