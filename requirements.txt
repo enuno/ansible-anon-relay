@@ -1,5 +1,9 @@
 # Python requirements for Ansible Docker modules
 # Install with: pip install -r requirements.txt
 
+# Docker Python SDK for Ansible community.docker collection
 docker>=5.0.0
-docker-compose>=1.29.0
+
+# Note: docker-compose (standalone CLI) is deprecated and incompatible with Python 3.12+
+# Use Docker Compose V2 instead, which is included with Docker as a plugin (docker compose)
+# Installation: https://docs.docker.com/compose/install/
