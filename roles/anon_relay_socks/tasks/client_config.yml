@@ -1,0 +1,86 @@
+# Client configuration for SOCKS proxy
+- name: Create client configuration directory
+  file:
+    path: "{{ anon_socks_client_config_path }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  tags:
+    - anon
+    - socks
+    - client
+    - config
+- name: Deploy SOCKS client configuration
+  template:
+    src: socks_client_config.txt.j2
+    dest: "{{ anon_socks_client_config_path }}/socks-config.txt"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - socks
+    - client
+    - config
+- name: Deploy browser configuration guide
+  template:
+    src: browser_config.html.j2
+    dest: "{{ anon_socks_client_config_path }}/browser-config.html"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - socks
+    - client
+    - browser
+- name: Deploy system proxy configuration
+  template:
+    src: system_proxy.sh.j2
+    dest: "{{ anon_socks_client_config_path }}/set-proxy.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - socks
+    - client
+    - system
+- name: Deploy proxy test script
+  template:
+    src: test_proxy.sh.j2
+    dest: "{{ anon_socks_client_config_path }}/test-proxy.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - socks
+    - client
+    - test
+- name: Display client configuration information
+  debug:
+    msg: |
+      ===========================================
+      SOCKS CLIENT CONFIGURATION
+      ===========================================
+      Configuration files created in: {{ anon_socks_client_config_path }}
+
+      Files available:
+      - socks-config.txt: Basic configuration
+      - browser-config.html: Browser setup guide
+      - set-proxy.sh: System proxy script
+      - test-proxy.sh: Connection test script
+
+      SOCKS Proxy: {{ anon_socks_bind_address }}:{{ anon_socks_port }}
+      ===========================================
+  tags:
+    - anon
+    - socks
+    - client
+    - info

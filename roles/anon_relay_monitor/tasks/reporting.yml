@@ -1,0 +1,60 @@
+# Configure reporting system
+- name: Create reporting script
+  template:
+    src: report.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/report.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - reporting
+    - script
+- name: Create report template
+  template:
+    src: report_template.html.j2
+    dest: "{{ anon_monitor_scripts_dir }}/report_template.html"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - reporting
+    - template
+- name: Create reporting cron job
+  cron:
+    name: "Anon relay reporting"
+    job: "{{ anon_monitor_scripts_dir }}/report.sh >> {{ anon_monitor_log_dir }}/report.log 2>&1"
+    minute: "{{ anon_report_schedule.split()[0] }}"
+    hour: "{{ anon_report_schedule.split()[1] }}"
+    day: "{{ anon_report_schedule.split()[2] }}"
+    month: "{{ anon_report_schedule.split()[3] }}"
+    weekday: "{{ anon_report_schedule.split()[4] }}"
+    user: root
+  tags:
+    - anon
+    - monitor
+    - reporting
+    - cron
+- name: Test reporting script
+  command: "{{ anon_monitor_scripts_dir }}/report.sh --test"
+  register: report_test
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - monitor
+    - reporting
+    - test
+- name: Display reporting status
+  debug:
+    msg: "Reporting test: {{ 'PASSED' if report_test.rc == 0 else 'FAILED' }}"
+  tags:
+    - anon
+    - monitor
+    - reporting
+    - test

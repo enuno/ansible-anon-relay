@@ -1,0 +1,70 @@
+# Docker installation tasks for RedHat/Fedora systems
+- name: Install required packages for Docker
+  package:
+    name:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+    state: present
+  tags:
+    - docker
+    - packages
+    - redhat
+- name: Add Docker repository
+  yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: "https://download.docker.com/linux/centos/{{ ansible_distribution_major_version }}/$basearch/stable"
+    gpgcheck: yes
+    gpgkey: "https://download.docker.com/linux/centos/gpg"
+    enabled: yes
+  when: ansible_distribution == "CentOS"
+  tags:
+    - docker
+    - repository
+    - redhat
+- name: Add Docker repository for Fedora
+  yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: "https://download.docker.com/linux/fedora/{{ ansible_distribution_major_version }}/$basearch/stable"
+    gpgcheck: yes
+    gpgkey: "https://download.docker.com/linux/fedora/gpg"
+    enabled: yes
+  when: ansible_distribution == "Fedora"
+  tags:
+    - docker
+    - repository
+    - redhat
+- name: Install Docker CE
+  package:
+    name:
+      - "{{ docker_package }}"
+      - "docker-ce-cli"
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+  tags:
+    - docker
+    - packages
+    - redhat
+- name: Remove old Docker packages if requested
+  package:
+    name:
+      - docker
+      - docker-client
+      - docker-client-latest
+      - docker-common
+      - docker-latest
+      - docker-latest-logrotate
+      - docker-logrotate
+      - docker-engine
+      - podman
+      - runc
+    state: absent
+  when: docker_remove_old_packages | default(false)
+  tags:
+    - docker
+    - cleanup
+    - redhat

@@ -1,0 +1,46 @@
+# {{ ansible_managed }}
+# Nyx Monitor Configuration
+# Generated from: {{ role_path }}/templates/config.j2
+
+# Nyx configuration for Anon relay monitoring
+# This file configures the Nyx monitoring tool
+
+# Control socket path
+control_socket = {{ anon_base_dir }}/run/anon/control
+
+# Display settings
+interface = ncurses
+refresh_rate = 1
+
+# Logging
+log_level = info
+log_file = {{ anon_base_dir }}/logs/nyx.log
+
+# Statistics
+show_bandwidth = true
+show_connections = true
+show_circuits = true
+show_streams = true
+
+# Colors
+color_scheme = default
+
+# Auto-refresh
+auto_refresh = true
+refresh_interval = 1
+
+# Display options
+show_traffic = true
+show_bandwidth_graph = true
+show_connection_graph = true
+
+# Exit relay specific
+{% if anon_relay_type | default('standard') == 'exit' %}
+show_exit_policy = true
+show_exit_notice = true
+{% endif %}
+
+# SOCKS proxy specific
+{% if anon_relay_type | default('standard') == 'socks' %}
+show_socks_connections = true
+{% endif %}

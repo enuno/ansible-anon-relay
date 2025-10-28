@@ -1,0 +1,48 @@
+# Main health checks for Anon relay deployment
+# Validates deployment success and service health
+- name: Display health check banner
+  debug:
+    msg: "Starting health checks for Anon relay deployment..."
+  tags:
+    - health
+    - checks
+- name: Check Docker service health
+  include_tasks: docker_health.yml
+  when: health_check_docker_service | default(true)
+  tags:
+    - health
+    - docker
+- name: Check Anon container health
+  include_tasks: container_health.yml
+  when: health_check_container | default(true)
+  tags:
+    - health
+    - container
+- name: Check Anon service health
+  include_tasks: service_health.yml
+  when: health_check_anon_service | default(true)
+  tags:
+    - health
+    - service
+- name: Check network connectivity
+  include_tasks: network_health.yml
+  tags:
+    - health
+    - network
+- name: Check logs for errors
+  include_tasks: log_health.yml
+  when: health_check_logs | default(true)
+  tags:
+    - health
+    - logs
+- name: Check performance metrics
+  include_tasks: performance_health.yml
+  when: health_check_performance | default(false)
+  tags:
+    - health
+    - performance
+- name: Display health check summary
+  include_tasks: summary.yml
+  tags:
+    - health
+    - summary

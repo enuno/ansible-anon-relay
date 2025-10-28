@@ -1,0 +1,70 @@
+# Performance health checks
+- name: Get container resource usage
+  command: docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" {{ health_check_container_name }}
+  register: container_stats
+  changed_when: false
+  failed_when: false
+  tags:
+    - health
+    - performance
+    - resources
+- name: Parse CPU usage
+  set_fact:
+    cpu_usage: "{{ container_stats.stdout_lines[1].split()[1] | regex_replace('%', '') | float }}"
+  when: container_stats.stdout_lines | length > 1
+  tags:
+    - health
+    - performance
+    - cpu
+- name: Parse memory usage
+  set_fact:
+    memory_usage: "{{ container_stats.stdout_lines[1].split()[2].split('/')[0] | regex_replace('[^0-9.]', '') | float }}"
+    memory_limit: "{{ container_stats.stdout_lines[1].split()[2].split('/')[1] | regex_replace('[^0-9.]', '') | float }}"
+  when: container_stats.stdout_lines | length > 1
+  tags:
+    - health
+    - performance
+    - memory
+- name: Calculate memory usage percentage
+  set_fact:
+    memory_usage_percent: "{{ (memory_usage / memory_limit * 100) | round(1) }}"
+  when: memory_usage is defined and memory_limit is defined and memory_limit > 0
+  tags:
+    - health
+    - performance
+    - memory
+- name: Check CPU usage
+  assert:
+    that:
+      - cpu_usage | default(0) <= health_check_cpu_usage | default(80)
+  fail_msg: "CPU usage too high: {{ cpu_usage | default('unknown') }}% (limit: {{ health_check_cpu_usage | default(80) }}%)"
+  success_msg: "CPU usage is acceptable: {{ cpu_usage | default('unknown') }}%"
+  when: cpu_usage is defined
+  tags:
+    - health
+    - performance
+    - cpu
+- name: Check memory usage
+  assert:
+    that:
+      - memory_usage_percent | default(0) <= health_check_memory_usage | default(80)
+  fail_msg: "Memory usage too high: {{ memory_usage_percent | default('unknown') }}% (limit: {{ health_check_memory_usage | default(80) }}%)"
+  success_msg: "Memory usage is acceptable: {{ memory_usage_percent | default('unknown') }}%"
+  when: memory_usage_percent is defined
+  tags:
+    - health
+    - performance
+    - memory
+- name: Display performance metrics
+  debug:
+    msg: |
+      Container Performance Metrics:
+      - CPU Usage: {{ cpu_usage | default('unknown') }}%
+      - Memory Usage: {{ memory_usage_percent | default('unknown') }}%
+      - Memory Used: {{ memory_usage | default('unknown') }}MB
+      - Memory Limit: {{ memory_limit | default('unknown') }}MB
+  when: cpu_usage is defined or memory_usage_percent is defined
+  tags:
+    - health
+    - performance
+    - metrics

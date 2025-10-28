@@ -1,0 +1,26 @@
+# Default variables for health_checks role
+# Post-deployment validation and monitoring
+
+# Health check timeouts
+health_check_timeout: 30
+health_check_retries: 3
+health_check_delay: 10
+# Container health checks
+health_check_container: true
+health_check_container_name: "anon-relay"
+health_check_container_healthy: true
+# Service health checks
+health_check_docker_service: true
+health_check_anon_service: true
+# Network health checks
+health_check_orport: true
+health_check_orport_timeout: 10
+health_check_dns: true
+# Log health checks
+health_check_logs: true
+health_check_log_errors: true
+health_check_log_warnings: true
+# Performance checks
+health_check_performance: false
+health_check_memory_usage: 80
+health_check_cpu_usage: 80

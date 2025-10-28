@@ -1,0 +1,46 @@
+# Default variables for anon_relay_standard role
+# Standard (middle/guard) relay configuration
+
+# Relay Type
+anon_relay_type: "standard"
+# Standard Relay Configuration
+anon_relay_nickname: "MyStandardRelay"
+anon_relay_contact: "operator@example.com"
+anon_relay_or_port: 9001
+anon_relay_socks_port: 0 # Disabled for relay
+anon_relay_dir_port: 0 # Not used for standard relays
+# Bandwidth Configuration
+anon_relay_bandwidth_rate: "100 MBytes"
+anon_relay_bandwidth_burst: "200 MBytes"
+# IPv6 Configuration
+anon_ipv6_enabled: true
+anon_ipv6_only: false
+# Family Configuration (optional)
+anon_relay_myfamily: [] # List of related relay fingerprints
+# Network Requirements
+anon_port_forward_required: true
+# Firewall Configuration
+anon_firewall_enabled: true
+anon_firewall_rules:
+  - port: "{{ anon_relay_or_port }}"
+    proto: "tcp"
+    action: "allow"
+    comment: "ORPort for relay traffic"
+  - port: "{{ anon_ssh_port }}"
+    proto: "tcp"
+    action: "allow"
+    comment: "SSH access"
+# Security Settings (standard level)
+anon_ssh_port: 22
+anon_ssh_root_login: false
+anon_ssh_password_auth: false
+anon_fail2ban_enabled: true
+# Resource Requirements
+preflight_min_ram_mb: 512
+preflight_min_disk_gb: 5
+preflight_min_cpu_cores: 1
+# Health Check Settings
+health_check_orport: true
+health_check_orport_timeout: 10
+health_check_logs: true
+health_check_performance: false

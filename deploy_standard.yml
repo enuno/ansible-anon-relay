@@ -1,0 +1,69 @@
+# Standard Relay Deployment Playbook
+# Deploys standard (middle/guard) Anon relays
+- name: Deploy Standard Anon Relay
+  hosts: standard_relays
+  become: yes
+  gather_facts: yes
+  pre_tasks:
+    - name: Display standard relay deployment banner
+      debug:
+        msg: |
+          ===========================================
+          STANDARD RELAY DEPLOYMENT
+          ===========================================
+          Host: {{ inventory_hostname }}
+          Nickname: {{ anon_relay_nickname | default('MyStandardRelay') }}
+          Contact: {{ anon_relay_contact | default('operator@example.com') }}
+          ORPort: {{ anon_relay_or_port | default(9001) }}
+          ===========================================
+      tags:
+        - always
+        - info
+    - name: Run preflight checks
+      include_role:
+        name: preflight_checks
+      tags:
+        - preflight
+        - checks
+  roles:
+    - role: docker_setup
+      tags:
+        - docker
+        - setup
+    - role: anon_relay_base
+      tags:
+        - anon
+        - base
+    - role: anon_relay_standard
+      tags:
+        - anon
+        - standard
+    - role: anon_relay_monitor
+      when: anon_monitoring_enabled | default(true)
+      tags:
+        - monitoring
+        - nyx
+  post_tasks:
+    - name: Run health checks
+      include_role:
+        name: health_checks
+      tags:
+        - health
+        - checks
+    - name: Display standard relay information
+      debug:
+        msg: |
+          ===========================================
+          STANDARD RELAY DEPLOYED
+          ===========================================
+          Host: {{ inventory_hostname }}
+          Nickname: {{ anon_relay_nickname | default('MyStandardRelay') }}
+          ORPort: {{ anon_relay_or_port | default(9001) }}
+          Status: Running
+
+          Your IP will NOT be visible to destination sites.
+          This relay routes traffic through the Anyone network.
+          ===========================================
+      tags:
+        - always
+        - info

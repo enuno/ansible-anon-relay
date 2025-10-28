@@ -1,0 +1,19 @@
+# Docker service management tasks
+- name: Start and enable Docker service
+  systemd:
+    name: docker
+    state: "{{ docker_service_state }}"
+    enabled: "{{ docker_service_enabled }}"
+    daemon_reload: yes
+  tags:
+    - docker
+    - service
+- name: Wait for Docker daemon to be ready
+  wait_for:
+    port: 2376
+    host: "{{ ansible_default_ipv4.address }}"
+    timeout: 30
+  ignore_errors: yes
+  tags:
+    - docker
+    - service

@@ -1,0 +1,53 @@
+# Exit relay configuration tasks
+- name: Deploy exit relay configuration
+  template:
+    src: anonrc_exit.j2
+    dest: "{{ anon_base_dir }}/etc/anon/anonrc"
+    mode: '{{ anon_config_mode | default("0644") }}'
+    owner: "{{ anon_config_owner | default('root') }}"
+    group: "{{ anon_config_group | default('root') }}"
+    backup: yes
+  notify: restart anon relay
+  tags:
+    - anon
+    - exit
+    - configure
+    - anonrc
+- name: Update Docker Compose configuration for exit relay
+  template:
+    src: relay.yaml.j2
+    dest: "{{ compose_dir }}/relay.yaml"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  notify: restart anon relay
+  tags:
+    - anon
+    - exit
+    - configure
+    - compose
+- name: Configure firewall rules for exit relay
+  include_tasks: firewall.yml
+  when: anon_firewall_enabled | default(true)
+  tags:
+    - anon
+    - exit
+    - configure
+    - firewall
+- name: Configure IPv6 settings
+  include_tasks: ipv6.yml
+  when: anon_ipv6_enabled | default(false)
+  tags:
+    - anon
+    - exit
+    - configure
+    - ipv6
+- name: Configure MyFamily settings
+  include_tasks: myfamily.yml
+  when: anon_relay_myfamily is defined and anon_relay_myfamily | length > 0
+  tags:
+    - anon
+    - exit
+    - configure
+    - myfamily

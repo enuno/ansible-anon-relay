@@ -1,0 +1,65 @@
+# Legal validation for exit relay deployment
+- name: Display legal warning
+  debug:
+    msg: |
+      ===========================================
+      EXIT RELAY LEGAL WARNING
+      ===========================================
+      WARNING: Your IP address will be visible to destination sites!
+
+      By running an exit relay, you are responsible for:
+      - All traffic that exits through your relay
+      - Legal compliance in your jurisdiction
+      - Handling abuse complaints
+      - Potential legal liability
+
+      You MUST acknowledge these risks before deployment.
+      ===========================================
+  tags:
+    - anon
+    - exit
+    - legal
+    - warning
+- name: Assert legal acknowledgment
+  assert:
+    that:
+      - anon_exit_legal_acknowledged | default(false) == true
+  fail_msg: |
+    Legal acknowledgment is REQUIRED for exit relays.
+
+    Set anon_exit_legal_acknowledged: true in your configuration
+    after reviewing the legal implications and risks.
+
+    This is a safety measure to ensure you understand the
+    responsibilities of running an exit relay.
+  success_msg: "Legal acknowledgment confirmed for exit relay deployment"
+  tags:
+    - anon
+    - exit
+    - legal
+    - validation
+- name: Validate contact email format
+  assert:
+    that:
+      - anon_relay_contact is defined
+      - anon_relay_contact != ""
+      - "'@' in anon_relay_contact"
+  fail_msg: "Valid contact email is required for exit relays (anon_relay_contact)"
+  success_msg: "Contact email format is valid"
+  tags:
+    - anon
+    - exit
+    - legal
+    - validation
+- name: Check if contact email is non-personal
+  debug:
+    msg: |
+      WARNING: Using personal email for exit relay contact.
+      Consider using a dedicated abuse@domain.com email address
+      for handling abuse complaints.
+  when: "'@gmail.com' in anon_relay_contact or '@yahoo.com' in anon_relay_contact or '@hotmail.com' in anon_relay_contact"
+  tags:
+    - anon
+    - exit
+    - legal
+    - warning

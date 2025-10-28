@@ -1,0 +1,88 @@
+# {{ ansible_managed }}
+# Abuse Complaint Template for Exit Relay
+# Generated from: {{ role_path }}/templates/abuse_template.txt.j2
+
+===========================================
+ABUSE COMPLAINT TEMPLATE
+===========================================
+
+Relay Information:
+- Nickname: {{ anon_relay_nickname | default('AnonExitRelay') }}
+- IP Address: {{ ansible_default_ipv4.address }}
+- ORPort: {{ anon_relay_or_port | default(9001) }}
+- Contact: {{ anon_relay_contact | default('abuse@example.com') }}
+
+===========================================
+INSTRUCTIONS FOR REPORTING ABUSE
+===========================================
+
+1. UNDERSTAND THE SITUATION
+   - This is an Anyone Protocol exit relay
+   - Traffic appears to come from this IP but originates from users
+   - We cannot identify individual users or their activities
+   - We do not log user traffic or personal information
+
+2. GATHER INFORMATION
+   - Timestamp of the incident (UTC preferred)
+   - Source IP address (if different from this relay)
+   - Destination IP/domain and port
+   - Type of activity (if known)
+   - Any relevant logs or evidence
+
+3. CONTACT INFORMATION
+   - Primary Contact: {{ anon_relay_contact | default('abuse@example.com') }}
+   - Abuse Contact: {{ anon_exit_notice_email | default('abuse@example.com') }}
+   - Response Time: Within 24-48 hours
+
+4. WHAT WE CAN DO
+   - Investigate if the activity violates our exit policy
+   - Block specific ports or protocols if needed
+   - Provide technical information about our relay
+   - Coordinate with law enforcement if legally required
+
+5. WHAT WE CANNOT DO
+   - Identify individual users
+   - Provide user logs or personal information
+   - Monitor or log user activities
+   - Guarantee immediate resolution
+
+===========================================
+EXIT POLICY INFORMATION
+===========================================
+
+This relay blocks the following high-risk ports:
+- Port 25 (SMTP)
+- Port 587 (SMTP Submission)
+- Port 465 (SMTPS)
+- Port 2525 (SMTP Alternative)
+- Port 3389 (RDP)
+- Port 23 (Telnet)
+- Port 3128 (HTTP Proxy)
+- Port 5900 (VNC)
+- Port 9999 (Custom high-risk)
+
+All other traffic is allowed through this exit relay.
+
+===========================================
+LEGAL DISCLAIMER
+===========================================
+
+This exit relay is operated in compliance with local laws and regulations.
+The operator is not responsible for the content of traffic that passes
+through this relay, as it originates from third-party users of the
+Anyone Protocol network.
+
+For legal matters, please contact:
+{{ anon_relay_contact | default('abuse@example.com') }}
+
+===========================================
+TECHNICAL SUPPORT
+===========================================
+
+For technical issues or questions about this relay:
+- Relay Version: {{ anon_docker_image | default('svforte/anon:latest') }}
+- DoS Mitigation: {{ 'Enabled' if anon_dos_circuit_creation_enabled | default(true) else 'Disabled' }}
+- IPv6 Support: {{ 'Enabled' if anon_ipv6_enabled | default(false) else 'Disabled' }}
+- Last Updated: {{ ansible_date_time.iso8601 }}
+
+===========================================

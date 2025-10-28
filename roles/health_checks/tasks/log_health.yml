@@ -1,0 +1,104 @@
+# Log health checks
+- name: Get recent container logs
+  command: docker logs --tail 50 {{ health_check_container_name }}
+  register: container_logs
+  changed_when: false
+  failed_when: false
+  tags:
+    - health
+    - logs
+    - container
+- name: Check for error messages in logs
+  lineinfile:
+    path: /tmp/anon_errors.log
+    line: "{{ item }}"
+    create: yes
+    mode: '0644'
+  loop: "{{ container_logs.stdout_lines | select('match', '.*[Ee]rror.*') | list }}"
+  when: health_check_log_errors | default(true)
+  tags:
+    - health
+    - logs
+    - errors
+- name: Count error messages
+  command: grep -c "ERROR\|Error\|error" /tmp/anon_errors.log
+  register: error_count
+  changed_when: false
+  failed_when: false
+  when: health_check_log_errors | default(true)
+  tags:
+    - health
+    - logs
+    - errors
+- name: Assert no critical errors in logs
+  assert:
+    that:
+      - error_count.stdout | int <= 5
+  fail_msg: "Too many errors found in logs ({{ error_count.stdout }} errors)"
+  success_msg: "Log error check passed ({{ error_count.stdout }} errors found)"
+  when: health_check_log_errors | default(true)
+  tags:
+    - health
+    - logs
+    - errors
+- name: Check for warning messages in logs
+  lineinfile:
+    path: /tmp/anon_warnings.log
+    line: "{{ item }}"
+    create: yes
+    mode: '0644'
+  loop: "{{ container_logs.stdout_lines | select('match', '.*[Ww]arning.*') | list }}"
+  when: health_check_log_warnings | default(true)
+  tags:
+    - health
+    - logs
+    - warnings
+- name: Count warning messages
+  command: grep -c "WARNING\|Warning\|warning" /tmp/anon_warnings.log
+  register: warning_count
+  changed_when: false
+  failed_when: false
+  when: health_check_log_warnings | default(true)
+  tags:
+    - health
+    - logs
+    - warnings
+- name: Display warning count
+  debug:
+    msg: "Found {{ warning_count.stdout }} warnings in logs"
+  when: health_check_log_warnings | default(true)
+  tags:
+    - health
+    - logs
+    - warnings
+- name: Check for successful startup messages
+  command: docker logs {{ health_check_container_name }} | grep -i "started\|ready\|listening"
+  register: startup_messages
+  changed_when: false
+  failed_when: false
+  tags:
+    - health
+    - logs
+    - startup
+- name: Assert successful startup
+  assert:
+    that:
+      - startup_messages.rc == 0
+      - startup_messages.stdout_lines | length > 0
+  fail_msg: "No startup success messages found in logs"
+  success_msg: "Startup success messages found in logs"
+  tags:
+    - health
+    - logs
+    - startup
+- name: Clean up temporary log files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/anon_errors.log
+    - /tmp/anon_warnings.log
+  tags:
+    - health
+    - logs
+    - cleanup

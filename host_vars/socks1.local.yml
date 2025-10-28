@@ -1,0 +1,23 @@
+# Host-specific variables for socks1.local
+# Example SOCKS proxy configuration
+
+# Override global settings for this specific host
+anon_relay_nickname: "SOCKS1-Local"
+anon_relay_contact: "admin@local.net"
+# SOCKS proxy network configuration
+anon_socks_bind_address: "192.168.1.100" # Specific LAN IP
+anon_socks_policy_accept: "192.168.1.0/24" # LAN subnet
+# Bandwidth settings for this SOCKS proxy
+anon_relay_bandwidth_rate: "25 MBytes"
+anon_relay_bandwidth_burst: "50 MBytes"
+# Network configuration
+anon_port_forward_required: false
+anon_ipv6_enabled: false
+# SSH configuration
+anon_ssh_port: 22
+# Resource settings (lower for SOCKS proxy)
+anon_max_mem_in_mb: 256
+anon_max_cpu_percent: 50
+# Monitoring settings
+anon_monitoring_enabled: true
+anon_nyx_enabled: false # Nyx not typically used for SOCKS proxies

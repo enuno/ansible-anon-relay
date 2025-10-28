@@ -1,0 +1,21 @@
+# Host-specific variables for relay1.example.com
+# Example standard relay configuration
+
+# Override global settings for this specific host
+anon_relay_nickname: "Relay1-Example"
+anon_relay_contact: "relay1@example.com"
+# Bandwidth settings specific to this relay
+anon_relay_bandwidth_rate: "150 MBytes"
+anon_relay_bandwidth_burst: "300 MBytes"
+# IPv6 configuration
+anon_ipv6_enabled: true
+# Family configuration (if this relay is part of a family)
+anon_relay_myfamily: [] # Add fingerprints of related relays
+# SSH configuration
+anon_ssh_port: 22
+# Monitoring settings
+anon_monitoring_enabled: true
+anon_nyx_enabled: true
+# Performance settings
+anon_max_mem_in_mb: 1024
+anon_max_cpu_percent: 70

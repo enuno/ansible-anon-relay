@@ -1,0 +1,11 @@
+# Handlers for anon_relay_exit role
+- name: restart anon relay
+  community.docker.docker_container:
+    name: "{{ anon_container_name | default('anon-relay') }}"
+    state: restarted
+  listen: restart anon relay
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+  listen: restart nginx

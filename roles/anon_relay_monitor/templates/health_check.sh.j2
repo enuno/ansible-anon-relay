@@ -1,0 +1,130 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# Anon relay health check script
+# Generated from: {{ role_path }}/templates/health_check.sh.j2
+
+set -euo pipefail
+
+# Configuration
+CONTAINER_NAME="{{ anon_container_name | default('anon-relay') }}"
+LOG_FILE="{{ anon_monitor_log_dir }}/health_check.log"
+OR_PORT="{{ anon_relay_or_port | default(9001) }}"
+DIR_PORT="{{ anon_relay_dir_port | default(80) }}"
+SOCKS_PORT="{{ anon_socks_port | default(9050) }}"
+RELAY_TYPE="{{ anon_relay_type | default('standard') }}"
+
+# Logging function
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+# Check if container is running
+check_container() {
+    if docker ps --format "table {{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
+        log "✓ Container ${CONTAINER_NAME} is running"
+        return 0
+    else
+        log "✗ Container ${CONTAINER_NAME} is not running"
+        return 1
+    fi
+}
+
+# Check if ports are listening
+check_ports() {
+    local all_good=true
+    
+    # Check ORPort
+    if netstat -tlnp | grep -q ":${OR_PORT} "; then
+        log "✓ ORPort ${OR_PORT} is listening"
+    else
+        log "✗ ORPort ${OR_PORT} is not listening"
+        all_good=false
+    fi
+    
+    # Check DirPort for exit relays
+    if [ "$RELAY_TYPE" = "exit" ] && [ "$DIR_PORT" != "0" ]; then
+        if netstat -tlnp | grep -q ":${DIR_PORT} "; then
+            log "✓ DirPort ${DIR_PORT} is listening"
+        else
+            log "✗ DirPort ${DIR_PORT} is not listening"
+            all_good=false
+        fi
+    fi
+    
+    # Check SOCKS port for SOCKS proxies
+    if [ "$RELAY_TYPE" = "socks" ] && [ "$SOCKS_PORT" != "0" ]; then
+        if netstat -tlnp | grep -q ":${SOCKS_PORT} "; then
+            log "✓ SOCKS port ${SOCKS_PORT} is listening"
+        else
+            log "✗ SOCKS port ${SOCKS_PORT} is not listening"
+            all_good=false
+        fi
+    fi
+    
+    if [ "$all_good" = true ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Check if Anon process is running inside container
+check_anon_process() {
+    if docker exec "$CONTAINER_NAME" ps aux | grep -q "[a]non"; then
+        log "✓ Anon process is running inside container"
+        return 0
+    else
+        log "✗ Anon process is not running inside container"
+        return 1
+    fi
+}
+
+# Check control socket
+check_control_socket() {
+    local socket_path="{{ anon_nyx_control_socket }}"
+    if [ -S "$socket_path" ]; then
+        log "✓ Control socket exists: $socket_path"
+        return 0
+    else
+        log "✗ Control socket missing: $socket_path"
+        return 1
+    fi
+}
+
+# Check recent logs for errors
+check_logs() {
+    local error_count
+    error_count=$(docker logs --since 5m "$CONTAINER_NAME" 2>&1 | grep -i "error\|failed\|fatal" | wc -l)
+    
+    if [ "$error_count" -eq 0 ]; then
+        log "✓ No recent errors in logs"
+        return 0
+    else
+        log "⚠ Found $error_count recent errors in logs"
+        return 1
+    fi
+}
+
+# Main health check
+main() {
+    log "Starting health check for ${CONTAINER_NAME}"
+    
+    local exit_code=0
+    
+    check_container || exit_code=1
+    check_ports || exit_code=1
+    check_anon_process || exit_code=1
+    check_control_socket || exit_code=1
+    check_logs || exit_code=1
+    
+    if [ $exit_code -eq 0 ]; then
+        log "✓ All health checks passed"
+    else
+        log "✗ Some health checks failed"
+    fi
+    
+    exit $exit_code
+}
+
+# Run main function
+main "$@"

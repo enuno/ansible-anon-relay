@@ -1,0 +1,120 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# Anon relay performance monitoring script
+# Generated from: {{ role_path }}/templates/performance_monitor.sh.j2
+
+set -euo pipefail
+
+# Configuration
+CONTAINER_NAME="{{ anon_container_name | default('anon-relay') }}"
+LOG_FILE="{{ anon_monitor_log_dir }}/performance.log"
+CPU_THRESHOLD="{{ anon_cpu_threshold | default(80) }}"
+MEMORY_THRESHOLD="{{ anon_memory_threshold | default(80) }}"
+DISK_THRESHOLD="{{ anon_disk_threshold | default(90) }}"
+
+# Logging function
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+# Get container stats
+get_container_stats() {
+    docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}" "$CONTAINER_NAME" | tail -n +2
+}
+
+# Parse CPU usage
+get_cpu_usage() {
+    local stats
+    stats=$(get_container_stats)
+    echo "$stats" | awk '{print $2}' | sed 's/%//'
+}
+
+# Parse memory usage
+get_memory_usage() {
+    local stats
+    stats=$(get_container_stats)
+    echo "$stats" | awk '{print $4}' | sed 's/%//'
+}
+
+# Check CPU usage
+check_cpu() {
+    local cpu_usage
+    cpu_usage=$(get_cpu_usage)
+    
+    if [ -n "$cpu_usage" ] && [ "$cpu_usage" -gt "$CPU_THRESHOLD" ]; then
+        log "⚠ High CPU usage: ${cpu_usage}% (threshold: ${CPU_THRESHOLD}%)"
+        return 1
+    else
+        log "✓ CPU usage: ${cpu_usage}%"
+        return 0
+    fi
+}
+
+# Check memory usage
+check_memory() {
+    local memory_usage
+    memory_usage=$(get_memory_usage)
+    
+    if [ -n "$memory_usage" ] && [ "$memory_usage" -gt "$MEMORY_THRESHOLD" ]; then
+        log "⚠ High memory usage: ${memory_usage}% (threshold: ${MEMORY_THRESHOLD}%)"
+        return 1
+    else
+        log "✓ Memory usage: ${memory_usage}%"
+        return 0
+    fi
+}
+
+# Check disk usage
+check_disk() {
+    local disk_usage
+    disk_usage=$(df / | awk 'NR==2 {print $5}' | sed 's/%//')
+    
+    if [ "$disk_usage" -gt "$DISK_THRESHOLD" ]; then
+        log "⚠ High disk usage: ${disk_usage}% (threshold: ${DISK_THRESHOLD}%)"
+        return 1
+    else
+        log "✓ Disk usage: ${disk_usage}%"
+        return 0
+    fi
+}
+
+# Get bandwidth usage
+get_bandwidth() {
+    local stats
+    stats=$(get_container_stats)
+    echo "$stats" | awk '{print $3}'
+}
+
+# Log performance metrics
+log_metrics() {
+    local cpu_usage memory_usage disk_usage bandwidth
+    cpu_usage=$(get_cpu_usage)
+    memory_usage=$(get_memory_usage)
+    disk_usage=$(df / | awk 'NR==2 {print $5}' | sed 's/%//')
+    bandwidth=$(get_bandwidth)
+    
+    log "METRICS: CPU=${cpu_usage}% MEM=${memory_usage}% DISK=${disk_usage}% BW=${bandwidth}"
+}
+
+# Main performance check
+main() {
+    log "Starting performance monitoring for ${CONTAINER_NAME}"
+    
+    local exit_code=0
+    
+    check_cpu || exit_code=1
+    check_memory || exit_code=1
+    check_disk || exit_code=1
+    log_metrics
+    
+    if [ $exit_code -eq 0 ]; then
+        log "✓ All performance checks passed"
+    else
+        log "✗ Some performance checks failed"
+    fi
+    
+    exit $exit_code
+}
+
+# Run main function
+main "$@"

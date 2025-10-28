@@ -1,0 +1,54 @@
+# Install monitoring scripts
+- name: Create monitoring utility script
+  template:
+    src: monitoring_utils.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/monitoring_utils.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - scripts
+    - utils
+- name: Create alert script
+  template:
+    src: alert.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/alert.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  when: anon_alerts_enabled | default(false)
+  tags:
+    - anon
+    - monitor
+    - scripts
+    - alert
+- name: Create status script
+  template:
+    src: status.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/status.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - scripts
+    - status
+- name: Create maintenance script
+  template:
+    src: maintenance.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/maintenance.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - scripts
+    - maintenance

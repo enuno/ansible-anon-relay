@@ -1,0 +1,75 @@
+# Main deployment playbook for Anon Relay
+# This playbook orchestrates the deployment of all relay types
+- name: Deploy Anon Relays
+  hosts: relays
+  become: yes
+  gather_facts: yes
+  pre_tasks:
+    - name: Display deployment banner
+      debug:
+        msg: |
+          ===========================================
+          ANON RELAY DEPLOYMENT
+          ===========================================
+          Host: {{ inventory_hostname }}
+          Relay Type: {{ anon_relay_type | default('standard') }}
+          Contact: {{ anon_relay_contact | default('operator@example.com') }}
+          ===========================================
+      tags:
+        - always
+        - info
+    - name: Run preflight checks
+      include_role:
+        name: preflight_checks
+      tags:
+        - preflight
+        - checks
+  roles:
+    - role: docker_setup
+      tags:
+        - docker
+        - setup
+    - role: anon_relay_base
+      tags:
+        - anon
+        - base
+    - role: anon_relay_standard
+      when: anon_relay_type | default('standard') == 'standard'
+      tags:
+        - anon
+        - standard
+    - role: anon_relay_exit
+      when: anon_relay_type | default('standard') == 'exit'
+      tags:
+        - anon
+        - exit
+    - role: anon_relay_socks
+      when: anon_relay_type | default('standard') == 'socks'
+      tags:
+        - anon
+        - socks
+    - role: anon_relay_monitor
+      when: anon_monitoring_enabled | default(true)
+      tags:
+        - monitoring
+        - nyx
+  post_tasks:
+    - name: Run health checks
+      include_role:
+        name: health_checks
+      tags:
+        - health
+        - checks
+    - name: Display deployment summary
+      debug:
+        msg: |
+          ===========================================
+          DEPLOYMENT COMPLETE
+          ===========================================
+          Host: {{ inventory_hostname }}
+          Relay Type: {{ anon_relay_type | default('standard') }}
+          Status: Deployed successfully
+          ===========================================
+      tags:
+        - always
+        - info

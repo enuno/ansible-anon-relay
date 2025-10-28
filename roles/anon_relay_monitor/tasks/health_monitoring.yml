@@ -1,0 +1,82 @@
+# Configure health monitoring
+- name: Create health check script
+  template:
+    src: health_check.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/health_check.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - health
+    - script
+- name: Create health check cron job
+  cron:
+    name: "Anon relay health check"
+    job: "{{ anon_monitor_scripts_dir }}/health_check.sh >> {{ anon_monitor_log_dir }}/health_check.log 2>&1"
+    minute: "*/5" # Every 5 minutes
+    user: root
+  tags:
+    - anon
+    - monitor
+    - health
+    - cron
+- name: Create health check systemd timer
+  template:
+    src: health_check.timer.j2
+    dest: /etc/systemd/system/anon-health-check.timer
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  notify: reload systemd
+  tags:
+    - anon
+    - monitor
+    - health
+    - timer
+- name: Create health check systemd service
+  template:
+    src: health_check.service.j2
+    dest: /etc/systemd/system/anon-health-check.service
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  notify: reload systemd
+  tags:
+    - anon
+    - monitor
+    - health
+    - service
+- name: Enable and start health check timer
+  systemd:
+    name: anon-health-check.timer
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  tags:
+    - anon
+    - monitor
+    - health
+    - timer
+- name: Test health check script
+  command: "{{ anon_monitor_scripts_dir }}/health_check.sh"
+  register: health_test
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - monitor
+    - health
+    - test
+- name: Display health check results
+  debug:
+    msg: "Health check test: {{ 'PASSED' if health_test.rc == 0 else 'FAILED' }}"
+  tags:
+    - anon
+    - monitor
+    - health
+    - test

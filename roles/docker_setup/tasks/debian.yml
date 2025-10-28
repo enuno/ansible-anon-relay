@@ -1,0 +1,67 @@
+# Docker installation tasks for Debian/Ubuntu systems
+- name: Update apt package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  tags:
+    - docker
+    - packages
+    - debian
+- name: Install required packages for Docker
+  package:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - software-properties-common
+    state: present
+  tags:
+    - docker
+    - packages
+    - debian
+- name: Add Docker GPG key
+  apt_key:
+    url: "{{ docker_gpg_key_url }}"
+    state: present
+  tags:
+    - docker
+    - repository
+    - debian
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb [arch={{ ansible_architecture }}] {{ docker_repo_url_debian }} {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+  tags:
+    - docker
+    - repository
+    - debian
+- name: Install Docker CE
+  package:
+    name:
+      - "{{ docker_package }}"
+      - "docker-ce-cli"
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+  tags:
+    - docker
+    - packages
+    - debian
+- name: Remove old Docker packages if requested
+  package:
+    name:
+      - docker
+      - docker-engine
+      - docker.io
+      - containerd
+      - runc
+    state: absent
+  when: docker_remove_old_packages | default(false)
+  tags:
+    - docker
+    - cleanup
+    - debian

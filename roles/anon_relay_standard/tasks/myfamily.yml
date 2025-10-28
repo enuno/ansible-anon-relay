@@ -1,0 +1,33 @@
+# MyFamily configuration for standard relay
+- name: Configure MyFamily
+  lineinfile:
+    path: "{{ anon_base_dir }}/etc/anon/anonrc"
+    line: "MyFamily {{ anon_relay_myfamily | join(' ') }}"
+    state: present
+    backup: yes
+  tags:
+    - anon
+    - standard
+    - myfamily
+    - config
+- name: Validate MyFamily fingerprints
+  assert:
+    that:
+      - item | length == 40
+      - item | regex_search('^[A-F0-9]+$')
+  loop: "{{ anon_relay_myfamily }}"
+  fail_msg: "Invalid MyFamily fingerprint: {{ item }} (must be 40 hex characters)"
+  success_msg: "MyFamily fingerprint {{ item }} is valid"
+  tags:
+    - anon
+    - standard
+    - myfamily
+    - validate
+- name: Display MyFamily configuration
+  debug:
+    msg: "MyFamily configured with {{ anon_relay_myfamily | length }} fingerprints"
+  tags:
+    - anon
+    - standard
+    - myfamily
+    - info

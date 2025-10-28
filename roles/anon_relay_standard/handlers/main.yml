@@ -1,0 +1,11 @@
+# Handlers for anon_relay_standard role
+- name: restart fail2ban
+  systemd:
+    name: fail2ban
+    state: restarted
+  listen: restart fail2ban
+- name: restart ssh
+  systemd:
+    name: ssh
+    state: restarted
+  listen: restart ssh

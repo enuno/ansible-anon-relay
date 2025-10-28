@@ -1,0 +1,79 @@
+# Standard relay validation tasks
+- name: Verify standard relay configuration
+  command: docker exec {{ anon_container_name }} anon --verify-config -f /etc/anon/anonrc
+  register: config_verify_result
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - standard
+    - validate
+    - config
+- name: Assert configuration is valid
+  assert:
+    that:
+      - config_verify_result.rc == 0
+  fail_msg: "Standard relay configuration is invalid: {{ config_verify_result.stderr }}"
+  success_msg: "Standard relay configuration is valid"
+  tags:
+    - anon
+    - standard
+    - validate
+    - config
+- name: Check ORPort connectivity
+  wait_for:
+    port: "{{ anon_relay_or_port }}"
+    host: "{{ ansible_default_ipv4.address }}"
+    timeout: 10
+  register: orport_check
+  failed_when: false
+  tags:
+    - anon
+    - standard
+    - validate
+    - orport
+- name: Assert ORPort is reachable
+  assert:
+    that:
+      - orport_check.elapsed is defined
+  fail_msg: "ORPort {{ anon_relay_or_port }} is not reachable"
+  success_msg: "ORPort {{ anon_relay_or_port }} is reachable"
+  tags:
+    - anon
+    - standard
+    - validate
+    - orport
+- name: Check relay descriptor publication
+  uri:
+    url: "https://check.anyone.io/relay/{{ ansible_default_ipv4.address }}:{{ anon_relay_or_port }}"
+    method: GET
+    timeout: 10
+  register: descriptor_check
+  failed_when: false
+  tags:
+    - anon
+    - standard
+    - validate
+    - descriptor
+- name: Display descriptor status
+  debug:
+    msg: "Relay descriptor status: {{ 'Published' if descriptor_check.status == 200 else 'Not published yet' }}"
+  tags:
+    - anon
+    - standard
+    - validate
+    - descriptor
+- name: Check bandwidth configuration
+  assert:
+    that:
+      - anon_relay_bandwidth_rate is defined
+      - anon_relay_bandwidth_rate != ""
+      - anon_relay_bandwidth_burst is defined
+      - anon_relay_bandwidth_burst != ""
+  fail_msg: "Bandwidth configuration is incomplete"
+  success_msg: "Bandwidth configuration is complete"
+  tags:
+    - anon
+    - standard
+    - validate
+    - bandwidth

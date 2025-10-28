@@ -1,0 +1,60 @@
+# Configure log monitoring
+- name: Create log monitoring script
+  template:
+    src: log_monitor.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/log_monitor.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - logs
+    - script
+- name: Create log rotation configuration
+  template:
+    src: logrotate_anon.j2
+    dest: /etc/logrotate.d/anon-monitoring
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  when: anon_log_rotation | default(true)
+  tags:
+    - anon
+    - monitor
+    - logs
+    - rotation
+- name: Create log alert script
+  template:
+    src: log_alert.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/log_alert.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  when: anon_alerts_enabled | default(false)
+  tags:
+    - anon
+    - monitor
+    - logs
+    - alert
+- name: Test log monitoring script
+  command: "{{ anon_monitor_scripts_dir }}/log_monitor.sh"
+  register: log_test
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - monitor
+    - logs
+    - test
+- name: Display log monitoring status
+  debug:
+    msg: "Log monitoring test: {{ 'PASSED' if log_test.rc == 0 else 'FAILED' }}"
+  tags:
+    - anon
+    - monitor
+    - logs
+    - test

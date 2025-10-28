@@ -1,0 +1,27 @@
+# Main tasks for docker_setup role
+# Installs Docker CE and Docker Compose on target systems
+- name: Include distribution-specific tasks
+  include_tasks: "{{ ansible_os_family | lower }}.yml"
+  tags:
+    - docker
+    - setup
+- name: Configure Docker daemon
+  include_tasks: daemon_config.yml
+  tags:
+    - docker
+    - config
+- name: Manage Docker users
+  include_tasks: users.yml
+  tags:
+    - docker
+    - users
+- name: Start and enable Docker service
+  include_tasks: service.yml
+  tags:
+    - docker
+    - service
+- name: Verify Docker installation
+  include_tasks: verify.yml
+  tags:
+    - docker
+    - verify

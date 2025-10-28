@@ -1,0 +1,96 @@
+# Web server configuration for exit notice
+- name: Install nginx
+  package:
+    name: nginx
+    state: present
+  tags:
+    - anon
+    - exit
+    - webserver
+    - nginx
+- name: Create nginx configuration for exit notice
+  copy:
+    content: "server {\n    listen 80;\n    server_name {{ ansible_default_ipv4.address }};\n    \n    root {{ anon_base_dir }}/etc/anon/exit-notice;\n    index index.html;\n    \n    location / {\n        try_files $uri $uri/ =404;\n    }\n    \n    location /abuse.txt {\n        add_header Content-Type text/plain;\n    }\n    \n    # Security headers\n    add_header X-Frame-Options \"SAMEORIGIN\" always;\n    add_header X-Content-Type-Options \"nosniff\" always;\n    add_header X-XSS-Protection \"1; mode=block\" always;\n}\n"
+    dest: /etc/nginx/sites-available/anon-exit-notice
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  notify: restart nginx
+  tags:
+    - anon
+    - exit
+    - webserver
+    - nginx
+- name: Enable exit notice site
+  file:
+    src: /etc/nginx/sites-available/anon-exit-notice
+    dest: /etc/nginx/sites-enabled/anon-exit-notice
+    state: link
+  notify: restart nginx
+  tags:
+    - anon
+    - exit
+    - webserver
+    - nginx
+- name: Remove default nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx
+  tags:
+    - anon
+    - exit
+    - webserver
+    - nginx
+- name: Test nginx configuration
+  command: nginx -t
+  register: nginx_test
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - exit
+    - webserver
+    - nginx
+- name: Assert nginx configuration is valid
+  assert:
+    that:
+      - nginx_test.rc == 0
+  fail_msg: "Nginx configuration is invalid: {{ nginx_test.stderr }}"
+  success_msg: "Nginx configuration is valid"
+  tags:
+    - anon
+    - exit
+    - webserver
+    - nginx
+- name: Start and enable nginx
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+  tags:
+    - anon
+    - exit
+    - webserver
+    - nginx
+- name: Test exit notice website
+  uri:
+    url: "http://{{ ansible_default_ipv4.address }}/"
+    method: GET
+    timeout: 10
+  register: website_test
+  failed_when: false
+  tags:
+    - anon
+    - exit
+    - webserver
+    - test
+- name: Display website status
+  debug:
+    msg: "Exit notice website: {{ 'Accessible' if website_test.status == 200 else 'Not accessible' }}"
+  tags:
+    - anon
+    - exit
+    - webserver
+    - test

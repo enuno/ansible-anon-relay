@@ -1,0 +1,53 @@
+# Default variables for anon_relay_monitor role
+# Monitoring and management for Anon relays
+
+# Monitoring Configuration
+anon_monitoring_enabled: true
+anon_nyx_enabled: true
+anon_nyx_install_method: "pip" # pip, apt, or manual
+anon_nyx_version: "latest"
+# Nyx Configuration
+anon_nyx_config_dir: "/root/.nyx"
+anon_nyx_config_file: "{{ anon_nyx_config_dir }}/config"
+anon_nyx_control_socket: "/opt/anon/run/anon/control"
+anon_nyx_log_file: "/var/log/nyx.log"
+# Monitoring Scripts
+anon_monitor_scripts_dir: "/opt/anon/monitoring"
+anon_monitor_log_dir: "/var/log/anon/monitoring"
+anon_monitor_retention_days: 30
+# Health Check Configuration
+anon_health_check_interval: 300 # 5 minutes
+anon_health_check_retries: 3
+anon_health_check_timeout: 30
+# Alert Configuration
+anon_alerts_enabled: false
+anon_alert_email: "admin@example.com"
+anon_alert_slack_webhook: ""
+anon_alert_discord_webhook: ""
+# Performance Monitoring
+anon_performance_monitoring: true
+anon_cpu_threshold: 80
+anon_memory_threshold: 80
+anon_disk_threshold: 90
+anon_bandwidth_threshold: 90
+# Log Monitoring
+anon_log_monitoring: true
+anon_log_error_threshold: 10
+anon_log_warning_threshold: 50
+anon_log_rotation: true
+anon_log_max_size: "100M"
+anon_log_max_files: 5
+# Network Monitoring
+anon_network_monitoring: true
+anon_orport_check_interval: 60
+anon_dirport_check_interval: 60
+anon_socks_check_interval: 60
+# Backup Configuration
+anon_backup_enabled: false
+anon_backup_dir: "/opt/anon/backups"
+anon_backup_retention_days: 7
+anon_backup_schedule: "0 2 * * *" # Daily at 2 AM
+# Reporting
+anon_reporting_enabled: true
+anon_report_schedule: "0 0 * * 0" # Weekly on Sunday
+anon_report_email: "admin@example.com"

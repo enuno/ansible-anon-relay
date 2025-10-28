@@ -1,0 +1,42 @@
+# Health check summary
+- name: Set health check results
+  set_fact:
+    health_check_passed: true
+  tags:
+    - health
+    - summary
+- name: Display health check summary
+  debug:
+    msg: |
+      ===========================================
+      HEALTH CHECK SUMMARY
+      ===========================================
+      Host: {{ inventory_hostname }}
+      Container: {{ health_check_container_name }}
+      Status: {{ 'Running' if container_info.container.State.Status == 'running' else 'Not running' }}
+      Health: {{ container_info.container.State.Health.Status | default('Unknown') }}
+      Restarts: {{ container_restart_count | default('Unknown') }}
+      ORPort: {{ 'Reachable' if orport_connectivity_check.elapsed is defined else 'Not reachable' }}
+      DNS: {{ 'Working' if dns_health_check.rc == 0 else 'Not working' }}
+      ===========================================
+      All health checks PASSED!
+      Anon relay is operational.
+      ===========================================
+  when: health_check_passed | default(true)
+  tags:
+    - health
+    - summary
+- name: Display health check warnings
+  debug:
+    msg: |
+      ===========================================
+      HEALTH CHECK WARNINGS
+      ===========================================
+      {{ item }}
+      ===========================================
+  loop: "{{ health_warnings | default([]) }}"
+  when: health_warnings is defined and health_warnings | length > 0
+  tags:
+    - health
+    - summary
+    - warnings

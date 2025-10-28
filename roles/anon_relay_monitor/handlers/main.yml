@@ -1,0 +1,15 @@
+# Handlers for anon_relay_monitor role
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+  listen: reload systemd
+- name: restart nyx
+  systemd:
+    name: nyx
+    state: restarted
+  listen: restart nyx
+- name: restart health check
+  systemd:
+    name: anon-health-check.service
+    state: restarted
+  listen: restart health check

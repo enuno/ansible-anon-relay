@@ -1,0 +1,28 @@
+# Docker user management tasks
+- name: Create docker group
+  group:
+    name: "{{ docker_group }}"
+    gid: "{{ docker_group_gid }}"
+    state: present
+  tags:
+    - docker
+    - users
+- name: Add users to docker group
+  user:
+    name: "{{ item }}"
+    groups: "{{ docker_group }}"
+    append: yes
+  loop: "{{ docker_users }}"
+  when: docker_users | length > 0
+  tags:
+    - docker
+    - users
+- name: Add current ansible user to docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: "{{ docker_group }}"
+    append: yes
+  when: ansible_user is defined and ansible_user not in docker_users
+  tags:
+    - docker
+    - users

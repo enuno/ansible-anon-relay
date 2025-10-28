@@ -1,0 +1,155 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# SOCKS Proxy Test Script
+# Generated from: {{ role_path }}/templates/test_proxy.sh.j2
+
+# SOCKS Proxy Configuration
+SOCKS_HOST="{{ anon_socks_bind_address }}"
+SOCKS_PORT="{{ anon_socks_port }}"
+SOCKS_URL="socks5://${SOCKS_HOST}:${SOCKS_PORT}"
+
+echo "==========================================="
+echo "SOCKS PROXY CONNECTION TEST"
+echo "==========================================="
+echo "Testing proxy: ${SOCKS_HOST}:${SOCKS_PORT}"
+echo "==========================================="
+
+# Function to test with curl
+test_with_curl() {
+    echo "Testing with curl..."
+    if command -v curl >/dev/null 2>&1; then
+        echo "curl found, testing connection..."
+        
+        # Test basic connectivity
+        echo "1. Testing basic connectivity..."
+        if curl --socks5 "${SOCKS_HOST}:${SOCKS_PORT}" --connect-timeout 10 --max-time 30 -s https://httpbin.org/ip >/dev/null 2>&1; then
+            echo "   ✓ Basic connectivity test passed"
+        else
+            echo "   ✗ Basic connectivity test failed"
+            return 1
+        fi
+        
+        # Test IP address
+        echo "2. Testing IP address..."
+        LOCAL_IP=$(curl -s https://httpbin.org/ip | grep -o '"origin": "[^"]*"' | cut -d'"' -f4)
+        PROXY_IP=$(curl --socks5 "${SOCKS_HOST}:${SOCKS_PORT}" -s https://httpbin.org/ip | grep -o '"origin": "[^"]*"' | cut -d'"' -f4)
+        
+        echo "   Local IP: ${LOCAL_IP}"
+        echo "   Proxy IP: ${PROXY_IP}"
+        
+        if [ "${LOCAL_IP}" != "${PROXY_IP}" ]; then
+            echo "   ✓ IP address changed (proxy working)"
+        else
+            echo "   ✗ IP address unchanged (proxy not working)"
+            return 1
+        fi
+        
+        # Test DNS resolution
+        echo "3. Testing DNS resolution..."
+        if curl --socks5 "${SOCKS_HOST}:${SOCKS_PORT}" --connect-timeout 10 --max-time 30 -s https://google.com >/dev/null 2>&1; then
+            echo "   ✓ DNS resolution test passed"
+        else
+            echo "   ✗ DNS resolution test failed"
+            return 1
+        fi
+        
+        return 0
+    else
+        echo "curl not found, skipping curl tests"
+        return 1
+    fi
+}
+
+# Function to test with wget
+test_with_wget() {
+    echo "Testing with wget..."
+    if command -v wget >/dev/null 2>&1; then
+        echo "wget found, testing connection..."
+        
+        # Test basic connectivity
+        echo "1. Testing basic connectivity..."
+        if wget --proxy=on --socks5="${SOCKS_HOST}:${SOCKS_PORT}" --timeout=30 -q https://httpbin.org/ip -O /dev/null 2>/dev/null; then
+            echo "   ✓ Basic connectivity test passed"
+        else
+            echo "   ✗ Basic connectivity test failed"
+            return 1
+        fi
+        
+        # Test IP address
+        echo "2. Testing IP address..."
+        LOCAL_IP=$(wget -qO- https://httpbin.org/ip | grep -o '"origin": "[^"]*"' | cut -d'"' -f4)
+        PROXY_IP=$(wget --proxy=on --socks5="${SOCKS_HOST}:${SOCKS_PORT}" -qO- https://httpbin.org/ip | grep -o '"origin": "[^"]*"' | cut -d'"' -f4)
+        
+        echo "   Local IP: ${LOCAL_IP}"
+        echo "   Proxy IP: ${PROXY_IP}"
+        
+        if [ "${LOCAL_IP}" != "${PROXY_IP}" ]; then
+            echo "   ✓ IP address changed (proxy working)"
+        else
+            echo "   ✗ IP address unchanged (proxy not working)"
+            return 1
+        fi
+        
+        return 0
+    else
+        echo "wget not found, skipping wget tests"
+        return 1
+    fi
+}
+
+# Function to test port connectivity
+test_port_connectivity() {
+    echo "Testing port connectivity..."
+    if command -v nc >/dev/null 2>&1; then
+        echo "Testing if port ${SOCKS_PORT} is open on ${SOCKS_HOST}..."
+        if nc -z "${SOCKS_HOST}" "${SOCKS_PORT}" 2>/dev/null; then
+            echo "   ✓ Port ${SOCKS_PORT} is open on ${SOCKS_HOST}"
+            return 0
+        else
+            echo "   ✗ Port ${SOCKS_PORT} is not open on ${SOCKS_HOST}"
+            return 1
+        fi
+    else
+        echo "nc (netcat) not found, skipping port test"
+        return 1
+    fi
+}
+
+# Main test execution
+echo "Starting proxy tests..."
+echo ""
+
+# Test port connectivity first
+if test_port_connectivity; then
+    echo ""
+    # Test with available tools
+    if test_with_curl; then
+        echo ""
+        echo "==========================================="
+        echo "✓ ALL TESTS PASSED - PROXY IS WORKING"
+        echo "==========================================="
+        exit 0
+    elif test_with_wget; then
+        echo ""
+        echo "==========================================="
+        echo "✓ ALL TESTS PASSED - PROXY IS WORKING"
+        echo "==========================================="
+        exit 0
+    else
+        echo ""
+        echo "==========================================="
+        echo "✗ PROXY TESTS FAILED"
+        echo "==========================================="
+        echo "The proxy port is open but the proxy service"
+        echo "may not be working correctly."
+        exit 1
+    fi
+else
+    echo ""
+    echo "==========================================="
+    echo "✗ CONNECTION FAILED"
+    echo "==========================================="
+    echo "Cannot connect to ${SOCKS_HOST}:${SOCKS_PORT}"
+    echo "Check if the SOCKS proxy is running."
+    exit 1
+fi

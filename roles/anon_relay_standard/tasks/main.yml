@@ -1,0 +1,21 @@
+# Main tasks for anon_relay_standard role
+# Standard (middle/guard) relay configuration
+- name: Configure standard relay
+  include_tasks: configure.yml
+  tags:
+    - anon
+    - standard
+    - configure
+- name: Apply security hardening
+  include_tasks: security.yml
+  when: anon_fail2ban_enabled | default(true)
+  tags:
+    - anon
+    - standard
+    - security
+- name: Validate standard relay configuration
+  include_tasks: validate.yml
+  tags:
+    - anon
+    - standard
+    - validate

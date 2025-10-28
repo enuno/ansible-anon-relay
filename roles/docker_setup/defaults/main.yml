@@ -1,0 +1,35 @@
+# Default variables for docker_setup role
+# These variables can be overridden in group_vars or host_vars
+
+# Docker configuration
+docker_edition: 'ce' # Community Edition
+docker_package: "docker-{{ docker_edition }}"
+docker_compose_version: "latest"
+docker_daemon_config_dir: "/etc/docker"
+docker_daemon_config_file: "{{ docker_daemon_config_dir }}/daemon.json"
+# Docker repository configuration
+docker_repo_url_debian: "https://download.docker.com/linux/{{ ansible_distribution | lower }}"
+docker_repo_url_redhat: "https://download.docker.com/linux/centos/docker-ce.repo"
+docker_gpg_key_url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+# Docker daemon configuration
+docker_daemon_config:
+  log-driver: "json-file"
+  log-opts:
+    max-size: "10m"
+    max-file: "3"
+  storage-driver: "overlay2"
+  live-restore: true
+# Docker group configuration
+docker_group: "docker"
+docker_group_gid: 999
+# Users to add to docker group
+docker_users: []
+# - "{{ ansible_user }}"
+# - "relay-operator"
+
+# Service configuration
+docker_service_enabled: true
+docker_service_state: "started"
+# Cleanup configuration
+docker_cleanup_old_versions: false
+docker_remove_old_packages: false

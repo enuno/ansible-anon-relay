@@ -1,0 +1,59 @@
+# Configure backup system
+- name: Create backup directory
+  file:
+    path: "{{ anon_backup_dir }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  tags:
+    - anon
+    - monitor
+    - backup
+    - directory
+- name: Create backup script
+  template:
+    src: backup.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/backup.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - backup
+    - script
+- name: Create backup cron job
+  cron:
+    name: "Anon relay backup"
+    job: "{{ anon_monitor_scripts_dir }}/backup.sh >> {{ anon_monitor_log_dir }}/backup.log 2>&1"
+    minute: "{{ anon_backup_schedule.split()[0] }}"
+    hour: "{{ anon_backup_schedule.split()[1] }}"
+    day: "{{ anon_backup_schedule.split()[2] }}"
+    month: "{{ anon_backup_schedule.split()[3] }}"
+    weekday: "{{ anon_backup_schedule.split()[4] }}"
+    user: root
+  tags:
+    - anon
+    - monitor
+    - backup
+    - cron
+- name: Test backup script
+  command: "{{ anon_monitor_scripts_dir }}/backup.sh --test"
+  register: backup_test
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - monitor
+    - backup
+    - test
+- name: Display backup status
+  debug:
+    msg: "Backup test: {{ 'PASSED' if backup_test.rc == 0 else 'FAILED' }}"
+  tags:
+    - anon
+    - monitor
+    - backup
+    - test

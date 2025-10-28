@@ -1,0 +1,25 @@
+# Default variables for preflight_checks role
+# System requirement validation before deployment
+
+# Minimum system requirements
+preflight_min_ram_mb: 512
+preflight_min_disk_gb: 5
+preflight_min_cpu_cores: 1
+# Network requirements
+preflight_check_network: true
+preflight_check_dns: true
+preflight_check_internet: true
+# Docker requirements
+preflight_check_docker: true
+preflight_docker_version_min: "20.10.0"
+# Port requirements (relay type specific)
+preflight_check_ports: true
+preflight_required_ports:
+  - 22 # SSH
+  - 9001 # ORPort (standard/exit relays)
+# Exit relay specific requirements
+preflight_exit_legal_required: false
+preflight_exit_reverse_dns_required: false
+# Warnings and errors
+preflight_fail_on_warnings: false
+preflight_continue_on_errors: false

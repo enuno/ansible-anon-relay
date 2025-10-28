@@ -1,0 +1,6 @@
+# Handlers for anon_relay_socks role
+- name: restart anon relay
+  community.docker.docker_container:
+    name: "{{ anon_container_name | default('anon-relay') }}"
+    state: restarted
+  listen: restart anon relay

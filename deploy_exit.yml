@@ -1,0 +1,96 @@
+# Exit Relay Deployment Playbook
+# Deploys exit Anon relays - WARNING: Your IP will be visible to destination sites!
+- name: Deploy Exit Anon Relay
+  hosts: exit_relays
+  become: yes
+  gather_facts: yes
+  pre_tasks:
+    - name: Display exit relay legal warning
+      debug:
+        msg: |
+          ===========================================
+          EXIT RELAY DEPLOYMENT
+          ===========================================
+          WARNING: Your IP will be visible to destination sites!
+
+          Host: {{ inventory_hostname }}
+          Nickname: {{ anon_relay_nickname | default('MyExitRelay') }}
+          Contact: {{ anon_relay_contact | default('abuse@example.com') }}
+          ORPort: {{ anon_relay_or_port | default(9001) }}
+          DirPort: {{ anon_relay_dir_port | default(80) }}
+
+          Legal acknowledgment required: {{ anon_exit_legal_acknowledged | default(false) }}
+          ===========================================
+      tags:
+        - always
+        - info
+        - warning
+    - name: Assert legal acknowledgment
+      assert:
+        that:
+          - anon_exit_legal_acknowledged | default(false) == true
+      fail_msg: |
+        Legal acknowledgment is REQUIRED for exit relays!
+
+        Set anon_exit_legal_acknowledged: true in your configuration
+        after reviewing the legal implications and risks.
+
+        This is a safety measure to ensure you understand the
+        responsibilities of running an exit relay.
+      success_msg: "Legal acknowledgment confirmed for exit relay deployment"
+      tags:
+        - always
+        - legal
+    - name: Run preflight checks
+      include_role:
+        name: preflight_checks
+      tags:
+        - preflight
+        - checks
+  roles:
+    - role: docker_setup
+      tags:
+        - docker
+        - setup
+    - role: anon_relay_base
+      tags:
+        - anon
+        - base
+    - role: anon_relay_exit
+      tags:
+        - anon
+        - exit
+    - role: anon_relay_monitor
+      when: anon_monitoring_enabled | default(true)
+      tags:
+        - monitoring
+        - nyx
+  post_tasks:
+    - name: Run health checks
+      include_role:
+        name: health_checks
+      tags:
+        - health
+        - checks
+    - name: Display exit relay information
+      debug:
+        msg: |
+          ===========================================
+          EXIT RELAY DEPLOYED
+          ===========================================
+          Host: {{ inventory_hostname }}
+          Nickname: {{ anon_relay_nickname | default('MyExitRelay') }}
+          ORPort: {{ anon_relay_or_port | default(9001) }}
+          DirPort: {{ anon_relay_dir_port | default(80) }}
+          Status: Running
+
+          ⚠️  WARNING: Your IP will be visible to destination sites!
+
+          Exit Notice: http://{{ ansible_default_ipv4.address }}/
+          Abuse Contact: {{ anon_exit_notice_email | default('abuse@example.com') }}
+
+          You are responsible for all traffic exiting through this relay.
+          ===========================================
+      tags:
+        - always
+        - info

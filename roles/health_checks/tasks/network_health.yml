@@ -1,0 +1,99 @@
+# Network connectivity health checks
+- name: Check ORPort connectivity
+  wait_for:
+    port: "{{ anon_relay_or_port | default(9001) }}"
+    host: "{{ ansible_default_ipv4.address }}"
+    timeout: "{{ health_check_orport_timeout | default(10) }}"
+  register: orport_connectivity_check
+  failed_when: false
+  when: health_check_orport | default(true)
+  tags:
+    - health
+    - network
+    - orport
+- name: Assert ORPort is reachable
+  assert:
+    that:
+      - orport_connectivity_check.elapsed is defined
+  fail_msg: "ORPort {{ anon_relay_or_port | default(9001) }} is not reachable"
+  success_msg: "ORPort {{ anon_relay_or_port | default(9001) }} is reachable"
+  when: health_check_orport | default(true)
+  tags:
+    - health
+    - network
+    - orport
+- name: Check DirPort connectivity (exit relays)
+  wait_for:
+    port: "{{ anon_relay_dir_port | default(80) }}"
+    host: "{{ ansible_default_ipv4.address }}"
+    timeout: "{{ health_check_orport_timeout | default(10) }}"
+  register: dirport_connectivity_check
+  failed_when: false
+  when:
+    - health_check_orport | default(true)
+    - anon_relay_type | default('standard') == 'exit'
+  tags:
+    - health
+    - network
+    - dirport
+- name: Assert DirPort is reachable (exit relays)
+  assert:
+    that:
+      - dirport_connectivity_check.elapsed is defined
+  fail_msg: "DirPort {{ anon_relay_dir_port | default(80) }} is not reachable"
+  success_msg: "DirPort {{ anon_relay_dir_port | default(80) }} is reachable"
+  when:
+    - health_check_orport | default(true)
+    - anon_relay_type | default('standard') == 'exit'
+  tags:
+    - health
+    - network
+    - dirport
+- name: Check SOCKS port connectivity (SOCKS proxies)
+  wait_for:
+    port: "{{ anon_socks_port | default(9050) }}"
+    host: "{{ anon_socks_bind_address | default('127.0.0.1') }}"
+    timeout: "{{ health_check_orport_timeout | default(10) }}"
+  register: socks_connectivity_check
+  failed_when: false
+  when:
+    - health_check_orport | default(true)
+    - anon_relay_type | default('standard') == 'socks'
+  tags:
+    - health
+    - network
+    - socks
+- name: Assert SOCKS port is reachable (SOCKS proxies)
+  assert:
+    that:
+      - socks_connectivity_check.elapsed is defined
+  fail_msg: "SOCKS port {{ anon_socks_port | default(9050) }} is not reachable"
+  success_msg: "SOCKS port {{ anon_socks_port | default(9050) }} is reachable"
+  when:
+    - health_check_orport | default(true)
+    - anon_relay_type | default('standard') == 'socks'
+  tags:
+    - health
+    - network
+    - socks
+- name: Check DNS resolution
+  command: nslookup google.com
+  register: dns_health_check
+  changed_when: false
+  failed_when: false
+  when: health_check_dns | default(true)
+  tags:
+    - health
+    - network
+    - dns
+- name: Assert DNS resolution works
+  assert:
+    that:
+      - dns_health_check.rc == 0
+  fail_msg: "DNS resolution is not working"
+  success_msg: "DNS resolution is working"
+  when: health_check_dns | default(true)
+  tags:
+    - health
+    - network
+    - dns

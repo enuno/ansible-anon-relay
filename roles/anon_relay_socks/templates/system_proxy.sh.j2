@@ -1,0 +1,99 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# System Proxy Configuration Script
+# Generated from: {{ role_path }}/templates/system_proxy.sh.j2
+
+# SOCKS Proxy Configuration
+SOCKS_HOST="{{ anon_socks_bind_address }}"
+SOCKS_PORT="{{ anon_socks_port }}"
+SOCKS_URL="socks5://${SOCKS_HOST}:${SOCKS_PORT}"
+
+echo "==========================================="
+echo "SOCKS PROXY CONFIGURATION SCRIPT"
+echo "==========================================="
+echo "Proxy Server: ${SOCKS_HOST}:${SOCKS_PORT}"
+echo "Proxy URL: ${SOCKS_URL}"
+echo "==========================================="
+
+# Function to set environment variables
+set_env_proxy() {
+    echo "Setting environment variables..."
+    export http_proxy="${SOCKS_URL}"
+    export https_proxy="${SOCKS_URL}"
+    export all_proxy="${SOCKS_URL}"
+    export HTTP_PROXY="${SOCKS_URL}"
+    export HTTPS_PROXY="${SOCKS_URL}"
+    export ALL_PROXY="${SOCKS_URL}"
+    echo "Environment variables set successfully!"
+}
+
+# Function to unset environment variables
+unset_env_proxy() {
+    echo "Unsetting environment variables..."
+    unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY
+    echo "Environment variables unset successfully!"
+}
+
+# Function to test proxy connection
+test_proxy() {
+    echo "Testing proxy connection..."
+    if command -v curl >/dev/null 2>&1; then
+        echo "Using curl to test connection..."
+        curl --socks5 "${SOCKS_HOST}:${SOCKS_PORT}" --connect-timeout 10 https://httpbin.org/ip
+    elif command -v wget >/dev/null 2>&1; then
+        echo "Using wget to test connection..."
+        wget --proxy=on --socks5="${SOCKS_HOST}:${SOCKS_PORT}" --timeout=10 -qO- https://httpbin.org/ip
+    else
+        echo "Neither curl nor wget found. Cannot test connection."
+        return 1
+    fi
+}
+
+# Function to show current proxy settings
+show_proxy() {
+    echo "Current proxy settings:"
+    echo "http_proxy: ${http_proxy:-'Not set'}"
+    echo "https_proxy: ${https_proxy:-'Not set'}"
+    echo "all_proxy: ${all_proxy:-'Not set'}"
+}
+
+# Function to show help
+show_help() {
+    echo "Usage: $0 [COMMAND]"
+    echo ""
+    echo "Commands:"
+    echo "  set     - Set proxy environment variables"
+    echo "  unset   - Unset proxy environment variables"
+    echo "  test    - Test proxy connection"
+    echo "  show    - Show current proxy settings"
+    echo "  help    - Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0 set     # Set proxy for current session"
+    echo "  $0 test    # Test if proxy is working"
+    echo "  $0 unset   # Remove proxy settings"
+}
+
+# Main script logic
+case "${1:-help}" in
+    set)
+        set_env_proxy
+        ;;
+    unset)
+        unset_env_proxy
+        ;;
+    test)
+        test_proxy
+        ;;
+    show)
+        show_proxy
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        echo "Unknown command: $1"
+        show_help
+        exit 1
+        ;;
+esac

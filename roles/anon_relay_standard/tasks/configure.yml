@@ -1,0 +1,59 @@
+---
+# Standard relay configuration tasks
+
+- name: Deploy standard relay configuration
+  template:
+    src: anonrc_standard.j2
+    dest: "{{ anon_base_dir }}/etc/anon/anonrc"
+    mode: '{{ anon_config_mode }}'
+    owner: "{{ anon_config_owner }}"
+    group: "{{ anon_config_group }}"
+    backup: yes
+  notify: restart anon relay
+  tags:
+    - anon
+    - standard
+    - configure
+    - anonrc
+
+- name: Update Docker Compose configuration for standard relay
+  template:
+    src: relay.yaml.j2
+    dest: "{{ compose_dir }}/relay.yaml"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  notify: restart anon relay
+  tags:
+    - anon
+    - standard
+    - configure
+    - compose
+
+- name: Configure firewall rules for standard relay
+  include_tasks: firewall.yml
+  when: anon_firewall_enabled | default(true)
+  tags:
+    - anon
+    - standard
+    - configure
+    - firewall
+
+- name: Configure IPv6 settings
+  include_tasks: ipv6.yml
+  when: anon_ipv6_enabled | default(false)
+  tags:
+    - anon
+    - standard
+    - configure
+    - ipv6
+
+- name: Configure MyFamily settings
+  include_tasks: myfamily.yml
+  when: anon_relay_myfamily is defined and anon_relay_myfamily | length > 0
+  tags:
+    - anon
+    - standard
+    - configure
+    - myfamily

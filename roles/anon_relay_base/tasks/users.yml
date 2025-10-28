@@ -1,0 +1,40 @@
+# User and group management for Anon relay
+- name: Create anon group
+  group:
+    name: "{{ anon_user }}"
+    gid: "{{ anon_gid }}"
+    state: present
+  tags:
+    - anon
+    - users
+    - group
+- name: Create anon user
+  user:
+    name: "{{ anon_user }}"
+    uid: "{{ anon_uid }}"
+    group: "{{ anon_user }}"
+    system: yes
+    shell: /bin/false
+    home: "{{ anon_base_dir }}"
+    create_home: no
+    state: present
+  tags:
+    - anon
+    - users
+    - user
+- name: Verify anon user creation
+  getent:
+    database: passwd
+    key: "{{ anon_user }}"
+  register: anon_user_info
+  tags:
+    - anon
+    - users
+    - verify
+- name: Display anon user information
+  debug:
+    msg: "Anon user created: {{ anon_user }} (UID: {{ anon_uid }}, GID: {{ anon_gid }})"
+  tags:
+    - anon
+    - users
+    - verify

@@ -1,0 +1,141 @@
+# Remove Anon relay deployments
+# Cleanly removes all Anon relay components
+- name: Remove Anon Relays
+  hosts: relays
+  become: yes
+  gather_facts: yes
+  pre_tasks:
+    - name: Display removal banner
+      debug:
+        msg: |
+          ===========================================
+          ANON RELAY REMOVAL
+          ===========================================
+          Host: {{ inventory_hostname }}
+          Relay Type: {{ anon_relay_type | default('standard') }}
+          WARNING: This will remove all Anon relay data!
+          ===========================================
+      tags:
+        - always
+        - info
+    - name: Confirm removal
+      pause:
+        prompt: "Are you sure you want to remove the Anon relay? Type 'yes' to continue"
+      register: removal_confirm
+      when: not ansible_check_mode
+      tags:
+        - removal
+        - confirm
+    - name: Fail if not confirmed
+      fail:
+        msg: "Removal cancelled by user"
+      when:
+        - not ansible_check_mode
+        - removal_confirm.user_input != 'yes'
+      tags:
+        - removal
+        - confirm
+  tasks:
+    - name: Stop Anon container
+      community.docker.docker_container:
+        name: "{{ anon_container_name | default('anon-relay') }}"
+        state: stopped
+      ignore_errors: yes
+      tags:
+        - removal
+        - container
+    - name: Remove Anon container
+      community.docker.docker_container:
+        name: "{{ anon_container_name | default('anon-relay') }}"
+        state: absent
+      ignore_errors: yes
+      tags:
+        - removal
+        - container
+    - name: Remove Anon Docker image
+      community.docker.docker_image:
+        name: "{{ anon_docker_image | default('svforte/anon:latest') }}"
+        state: absent
+      ignore_errors: yes
+      tags:
+        - removal
+        - image
+    - name: Remove Anon directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ anon_base_dir | default('/opt/anon') }}"
+        - "{{ compose_dir | default('/opt/compose-files') }}"
+        - "{{ nyx_dir | default('/root/.nyx') }}"
+      tags:
+        - removal
+        - directories
+    - name: Remove Anon user
+      user:
+        name: "{{ anon_user | default('anond') }}"
+        state: absent
+      ignore_errors: yes
+      tags:
+        - removal
+        - user
+    - name: Remove Anon group
+      group:
+        name: "{{ anon_user | default('anond') }}"
+        state: absent
+      ignore_errors: yes
+      tags:
+        - removal
+        - group
+    - name: Remove logrotate configuration
+      file:
+        path: /etc/logrotate.d/anon
+        state: absent
+      tags:
+        - removal
+        - logrotate
+    - name: Remove UFW rules for Anon
+      ufw:
+        rule: deny
+        port: "{{ anon_relay_or_port | default(9001) }}"
+        proto: tcp
+      ignore_errors: yes
+      tags:
+        - removal
+        - firewall
+    - name: Remove UFW rules for DirPort
+      ufw:
+        rule: deny
+        port: "{{ anon_relay_dir_port | default(80) }}"
+        proto: tcp
+      ignore_errors: yes
+      when: anon_relay_type | default('standard') == 'exit'
+      tags:
+        - removal
+        - firewall
+    - name: Remove UFW rules for SOCKS port
+      ufw:
+        rule: deny
+        port: "{{ anon_socks_port | default(9050) }}"
+        proto: tcp
+      ignore_errors: yes
+      when: anon_relay_type | default('standard') == 'socks'
+      tags:
+        - removal
+        - firewall
+  post_tasks:
+    - name: Display removal summary
+      debug:
+        msg: |
+          ===========================================
+          REMOVAL COMPLETE
+          ===========================================
+          Host: {{ inventory_hostname }}
+          Relay Type: {{ anon_relay_type | default('standard') }}
+          Status: Removed successfully
+
+          All Anon relay data has been removed.
+          ===========================================
+      tags:
+        - always
+        - info

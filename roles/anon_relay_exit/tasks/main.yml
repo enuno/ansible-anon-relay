@@ -1,0 +1,33 @@
+# Main tasks for anon_relay_exit role
+# Exit relay configuration - WARNING: Your IP will be visible to destination sites
+- name: Validate legal acknowledgment
+  include_tasks: legal_validation.yml
+  tags:
+    - anon
+    - exit
+    - legal
+- name: Configure exit relay
+  include_tasks: configure.yml
+  tags:
+    - anon
+    - exit
+    - configure
+- name: Deploy exit notice
+  include_tasks: exit_notice.yml
+  when: anon_exit_notice_enabled | default(true)
+  tags:
+    - anon
+    - exit
+    - notice
+- name: Configure DoS mitigation
+  include_tasks: dos_mitigation.yml
+  tags:
+    - anon
+    - exit
+    - dos
+- name: Validate exit relay configuration
+  include_tasks: validate.yml
+  tags:
+    - anon
+    - exit
+    - validate

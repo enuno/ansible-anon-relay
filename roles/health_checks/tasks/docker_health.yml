@@ -1,0 +1,39 @@
+# Docker service health checks
+- name: Check Docker daemon status
+  systemd:
+    name: docker
+  register: docker_service_status
+  tags:
+    - health
+    - docker
+    - service
+- name: Assert Docker service is running
+  assert:
+    that:
+      - docker_service_status.status is defined
+      - docker_service_status.status.ActiveState == "active"
+  fail_msg: "Docker service is not running"
+  success_msg: "Docker service is running"
+  tags:
+    - health
+    - docker
+    - service
+- name: Check Docker daemon connectivity
+  command: docker info
+  register: docker_info_result
+  changed_when: false
+  failed_when: false
+  tags:
+    - health
+    - docker
+    - daemon
+- name: Assert Docker daemon is accessible
+  assert:
+    that:
+      - docker_info_result.rc == 0
+  fail_msg: "Docker daemon is not accessible"
+  success_msg: "Docker daemon is accessible"
+  tags:
+    - health
+    - docker
+    - daemon

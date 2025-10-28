@@ -1,0 +1,6 @@
+# Handlers for docker_setup role
+- name: restart docker
+  systemd:
+    name: docker
+    state: restarted
+  listen: restart docker

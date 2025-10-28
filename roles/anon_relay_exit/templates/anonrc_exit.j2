@@ -1,0 +1,101 @@
+# {{ ansible_managed }}
+# Exit Anon Relay Configuration
+# Generated from: {{ role_path }}/templates/anonrc_exit.j2
+# WARNING: Your IP will be visible to destination sites!
+
+# Basic relay configuration
+Nickname {{ anon_relay_nickname | default('AnonExitRelay') }}
+ContactInfo {{ anon_relay_contact | default('abuse@example.com') }}
+
+# Data directory
+DataDirectory /var/lib/anon
+
+# Logging configuration
+Log {{ anon_log_level | default('notice') }} file {{ anon_log_file | default('/var/log/anon/notices.log') }}
+
+# Terms acceptance (required since v0.4.9.7-live)
+{% if anon_accept_terms | default(true) %}
+AcceptTerms true
+{% endif %}
+
+# Exit relay configuration
+ExitRelay {{ anon_relay_exit_relay | default(1) }}
+IPv6Exit {{ anon_relay_ipv6_exit | default(0) }}
+
+# IPv6 configuration
+{% if anon_ipv6_enabled | default(false) %}
+IPv6Exit {{ anon_relay_ipv6_exit | default(0) }}
+{% else %}
+IPv6Exit 0
+{% endif %}
+
+# Bandwidth configuration
+{% if anon_relay_bandwidth_rate is defined %}
+BandwidthRate {{ anon_relay_bandwidth_rate }}
+{% endif %}
+{% if anon_relay_bandwidth_burst is defined %}
+BandwidthBurst {{ anon_relay_bandwidth_burst }}
+{% endif %}
+
+# Port configuration
+{% if anon_relay_or_port is defined and anon_relay_or_port > 0 %}
+ORPort {{ anon_relay_or_port }}
+{% endif %}
+{% if anon_relay_dir_port is defined and anon_relay_dir_port > 0 %}
+DirPort {{ anon_relay_dir_port }}
+{% endif %}
+{% if anon_relay_socks_port is defined and anon_relay_socks_port > 0 %}
+SocksPort {{ anon_relay_socks_port }}
+{% else %}
+SocksPort 0
+{% endif %}
+
+# Exit policy (restrictive)
+{% if anon_relay_exit_policy is defined %}
+{% for policy in anon_relay_exit_policy %}
+ExitPolicy {{ policy }}
+{% endfor %}
+{% else %}
+# Default restrictive exit policy
+ExitPolicy reject *:25
+ExitPolicy reject *:587
+ExitPolicy reject *:465
+ExitPolicy reject *:2525
+ExitPolicy reject *:3389
+ExitPolicy reject *:23
+ExitPolicy reject *:3128
+ExitPolicy reject *:5900
+ExitPolicy reject *:9999
+ExitPolicy accept *:*
+{% endif %}
+
+# Family configuration
+{% if anon_relay_myfamily is defined and anon_relay_myfamily | length > 0 %}
+MyFamily {{ anon_relay_myfamily | join(' ') }}
+{% endif %}
+
+# DoS mitigation (required for exit relays)
+{% if anon_dos_circuit_creation_enabled | default(true) %}
+DoSCircuitCreationEnabled 1
+DoSCircuitCreationBurst {{ anon_dos_circuit_creation_burst | default(30) }}
+DoSCircuitCreationRate {{ anon_dos_circuit_creation_rate | default(3) }}
+{% else %}
+DoSCircuitCreationEnabled 0
+{% endif %}
+
+{% if anon_dos_connection_enabled | default(true) %}
+DoSConnectionEnabled 1
+{% else %}
+DoSConnectionEnabled 0
+{% endif %}
+
+{% if anon_dos_stream_creation_enabled | default(true) %}
+DoSStreamCreationEnabled 1
+{% else %}
+DoSStreamCreationEnabled 0
+{% endif %}
+
+# Exit notice configuration
+{% if anon_exit_notice_enabled | default(true) %}
+ExitNotice {{ anon_exit_notice_email | default('abuse@example.com') }}
+{% endif %}

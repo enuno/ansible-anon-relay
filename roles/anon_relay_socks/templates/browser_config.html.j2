@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOCKS Proxy Browser Configuration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .browser {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .code {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SOCKS Proxy Browser Configuration</h1>
+        <p><strong>Proxy Server:</strong> {{ anon_socks_bind_address }}:{{ anon_socks_port }}</p>
+        <p><strong>Protocol:</strong> SOCKS5</p>
+        <p><strong>Authentication:</strong> None</p>
+    </div>
+
+    <div class="warning">
+        <h2>⚠️ Experimental Feature</h2>
+        <p>This SOCKS proxy configuration is experimental and may not work as expected in all scenarios. Use at your own risk.</p>
+    </div>
+
+    <div class="browser">
+        <h2>Firefox Configuration</h2>
+        <div class="step">
+            <strong>Step 1:</strong> Open Firefox and go to Settings (about:preferences)
+        </div>
+        <div class="step">
+            <strong>Step 2:</strong> Scroll down to "Network Settings" and click "Settings"
+        </div>
+        <div class="step">
+            <strong>Step 3:</strong> Select "Manual proxy configuration"
+        </div>
+        <div class="step">
+            <strong>Step 4:</strong> Enter the following settings:
+            <div class="code">
+                SOCKS Host: {{ anon_socks_bind_address }}<br>
+                Port: {{ anon_socks_port }}<br>
+                Type: SOCKS v5
+            </div>
+        </div>
+        <div class="step">
+            <strong>Step 5:</strong> Check "Proxy DNS when using SOCKS v5"
+        </div>
+        <div class="step">
+            <strong>Step 6:</strong> Click "OK" to save
+        </div>
+    </div>
+
+    <div class="browser">
+        <h2>Chrome/Chromium Configuration</h2>
+        <div class="step">
+            <strong>Step 1:</strong> Install the "Proxy SwitchyOmega" extension from Chrome Web Store
+        </div>
+        <div class="step">
+            <strong>Step 2:</strong> Click the Proxy SwitchyOmega icon and select "Options"
+        </div>
+        <div class="step">
+            <strong>Step 3:</strong> Click "New Profile" and name it "SOCKS Proxy"
+        </div>
+        <div class="step">
+            <strong>Step 4:</strong> Configure the profile:
+            <div class="code">
+                Protocol: SOCKS5<br>
+                Server: {{ anon_socks_bind_address }}<br>
+                Port: {{ anon_socks_port }}
+            </div>
+        </div>
+        <div class="step">
+            <strong>Step 5:</strong> Save the profile and select it from the extension menu
+        </div>
+    </div>
+
+    <div class="browser">
+        <h2>Safari Configuration</h2>
+        <div class="step">
+            <strong>Step 1:</strong> Open System Preferences > Network
+        </div>
+        <div class="step">
+            <strong>Step 2:</strong> Select your network connection (Wi-Fi or Ethernet)
+        </div>
+        <div class="step">
+            <strong>Step 3:</strong> Click "Advanced" and go to the "Proxies" tab
+        </div>
+        <div class="step">
+            <strong>Step 4:</strong> Check "SOCKS Proxy" and enter:
+            <div class="code">
+                Server: {{ anon_socks_bind_address }}<br>
+                Port: {{ anon_socks_port }}
+            </div>
+        </div>
+        <div class="step">
+            <strong>Step 5:</strong> Click "OK" to save
+        </div>
+    </div>
+
+    <div class="browser">
+        <h2>Testing Your Configuration</h2>
+        <div class="step">
+            <strong>Step 1:</strong> Open a new tab in your browser
+        </div>
+        <div class="step">
+            <strong>Step 2:</strong> Go to <a href="https://httpbin.org/ip" target="_blank">https://httpbin.org/ip</a>
+        </div>
+        <div class="step">
+            <strong>Step 3:</strong> Check if the IP address shown is different from your local IP
+        </div>
+        <div class="step">
+            <strong>Step 4:</strong> If the IP is the same, the proxy is not working correctly
+        </div>
+    </div>
+
+    <div class="warning">
+        <h2>Troubleshooting</h2>
+        <ul>
+            <li><strong>Connection refused:</strong> Check if the SOCKS proxy is running</li>
+            <li><strong>Timeout:</strong> Check firewall settings on the proxy server</li>
+            <li><strong>DNS issues:</strong> Enable "Proxy DNS" in browser settings</li>
+            <li><strong>Not working:</strong> Some applications don't support SOCKS5</li>
+        </ul>
+    </div>
+
+    <div class="header">
+        <h2>Additional Information</h2>
+        <p><strong>Proxy Server:</strong> {{ anon_socks_bind_address }}:{{ anon_socks_port }}</p>
+        <p><strong>Access Policy:</strong> {{ anon_socks_policy_accept }}</p>
+        <p><strong>Generated:</strong> {{ ansible_date_time.iso8601 }}</p>
+    </div>
+</body>
+</html>

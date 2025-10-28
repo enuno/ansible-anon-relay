@@ -1,0 +1,57 @@
+# Network access policy configuration for SOCKS proxy
+- name: Validate network access policy
+  assert:
+    that:
+      - anon_socks_policy_accept is defined
+      - anon_socks_policy_accept != ""
+      - anon_socks_bind_address is defined
+      - anon_socks_bind_address != ""
+  fail_msg: "Network access policy is incomplete. Set anon_socks_policy_accept and anon_socks_bind_address"
+  success_msg: "Network access policy is properly configured"
+  tags:
+    - anon
+    - socks
+    - network
+    - policy
+- name: Check if bind address is in policy range
+  set_fact:
+    bind_in_policy: "{{ ansible_default_ipv4.address in anon_socks_policy_accept.split('/')[0] | ipaddr('network') | ipaddr(anon_socks_policy_accept.split('/')[1] | int) }}"
+  when: "'/' in anon_socks_policy_accept"
+  tags:
+    - anon
+    - socks
+    - network
+    - policy
+- name: Display network policy information
+  debug:
+    msg: |
+      ===========================================
+      SOCKS PROXY NETWORK POLICY
+      ===========================================
+      Bind Address: {{ anon_socks_bind_address }}
+      Policy Accept: {{ anon_socks_policy_accept }}
+      SOCKS Port: {{ anon_socks_port }}
+
+      This proxy will only accept connections from:
+      {{ anon_socks_policy_accept }}
+      ===========================================
+  tags:
+    - anon
+    - socks
+    - network
+    - info
+- name: Warn about policy configuration
+  debug:
+    msg: |
+      WARNING: Make sure your client devices are in the
+      allowed network range: {{ anon_socks_policy_accept }}
+
+      If clients cannot connect, check:
+      1. Network range is correct
+      2. Firewall allows the SOCKS port
+      3. Client is in the allowed network
+  tags:
+    - anon
+    - socks
+    - network
+    - warning

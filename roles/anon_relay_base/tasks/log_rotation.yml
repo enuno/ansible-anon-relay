@@ -1,0 +1,54 @@
+# Log rotation configuration
+- name: Install logrotate
+  package:
+    name: logrotate
+    state: present
+  tags:
+    - anon
+    - logs
+    - logrotate
+- name: Create logrotate configuration for Anon
+  copy:
+    content: |
+      {{ anon_log_file }} {
+          daily
+          missingok
+          rotate {{ anon_log_rotation_max_files | default(3) }}
+          compress
+          delaycompress
+          notifempty
+          create {{ anon_log_rotation_max_size | default('10M') }} {{ anon_data_owner }} {{ anon_data_group }}
+          postrotate
+              docker restart {{ anon_container_name }} > /dev/null 2>&1 || true
+          endscript
+      }
+    dest: /etc/logrotate.d/anon
+    mode: '0644'
+    owner: root
+    group: root
+  when: anon_log_rotation_enabled | default(true)
+  tags:
+    - anon
+    - logs
+    - logrotate
+- name: Test logrotate configuration
+  command: logrotate -d /etc/logrotate.d/anon
+  register: logrotate_test
+  changed_when: false
+  failed_when: false
+  when: anon_log_rotation_enabled | default(true)
+  tags:
+    - anon
+    - logs
+    - logrotate
+- name: Assert logrotate configuration is valid
+  assert:
+    that:
+      - logrotate_test.rc == 0
+  fail_msg: "Logrotate configuration is invalid"
+  success_msg: "Logrotate configuration is valid"
+  when: anon_log_rotation_enabled | default(true)
+  tags:
+    - anon
+    - logs
+    - logrotate

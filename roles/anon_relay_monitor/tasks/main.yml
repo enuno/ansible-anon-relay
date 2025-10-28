@@ -1,0 +1,58 @@
+# Main tasks for anon_relay_monitor role
+# Monitoring and management for Anon relays
+- name: Install monitoring tools
+  include_tasks: install.yml
+  when: anon_monitoring_enabled | default(true)
+  tags:
+    - anon
+    - monitor
+    - install
+- name: Configure Nyx monitoring
+  include_tasks: nyx.yml
+  when: anon_nyx_enabled | default(true)
+  tags:
+    - anon
+    - monitor
+    - nyx
+- name: Configure health monitoring
+  include_tasks: health_monitoring.yml
+  when: anon_monitoring_enabled | default(true)
+  tags:
+    - anon
+    - monitor
+    - health
+- name: Configure performance monitoring
+  include_tasks: performance_monitoring.yml
+  when: anon_performance_monitoring | default(true)
+  tags:
+    - anon
+    - monitor
+    - performance
+- name: Configure log monitoring
+  include_tasks: log_monitoring.yml
+  when: anon_log_monitoring | default(true)
+  tags:
+    - anon
+    - monitor
+    - logs
+- name: Configure network monitoring
+  include_tasks: network_monitoring.yml
+  when: anon_network_monitoring | default(true)
+  tags:
+    - anon
+    - monitor
+    - network
+- name: Configure backup system
+  include_tasks: backup.yml
+  when: anon_backup_enabled | default(false)
+  tags:
+    - anon
+    - monitor
+    - backup
+- name: Configure reporting
+  include_tasks: reporting.yml
+  when: anon_reporting_enabled | default(true)
+  tags:
+    - anon
+    - monitor
+    - reporting

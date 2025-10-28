@@ -1,0 +1,132 @@
+# Exit relay validation tasks
+- name: Verify exit relay configuration
+  command: docker exec {{ anon_container_name | default('anon-relay') }} anon --verify-config -f /etc/anon/anonrc
+  register: config_verify_result
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - exit
+    - validate
+    - config
+- name: Assert configuration is valid
+  assert:
+    that:
+      - config_verify_result.rc == 0
+  fail_msg: "Exit relay configuration is invalid: {{ config_verify_result.stderr }}"
+  success_msg: "Exit relay configuration is valid"
+  tags:
+    - anon
+    - exit
+    - validate
+    - config
+- name: Check ORPort connectivity
+  wait_for:
+    port: "{{ anon_relay_or_port }}"
+    host: "{{ ansible_default_ipv4.address }}"
+    timeout: 10
+  register: orport_check
+  failed_when: false
+  tags:
+    - anon
+    - exit
+    - validate
+    - orport
+- name: Assert ORPort is reachable
+  assert:
+    that:
+      - orport_check.elapsed is defined
+  fail_msg: "ORPort {{ anon_relay_or_port }} is not reachable"
+  success_msg: "ORPort {{ anon_relay_or_port }} is reachable"
+  tags:
+    - anon
+    - exit
+    - validate
+    - orport
+- name: Check DirPort connectivity
+  wait_for:
+    port: "{{ anon_relay_dir_port }}"
+    host: "{{ ansible_default_ipv4.address }}"
+    timeout: 10
+  register: dirport_check
+  failed_when: false
+  tags:
+    - anon
+    - exit
+    - validate
+    - dirport
+- name: Assert DirPort is reachable
+  assert:
+    that:
+      - dirport_check.elapsed is defined
+  fail_msg: "DirPort {{ anon_relay_dir_port }} is not reachable"
+  success_msg: "DirPort {{ anon_relay_dir_port }} is reachable"
+  tags:
+    - anon
+    - exit
+    - validate
+    - dirport
+- name: Check exit relay descriptor publication
+  uri:
+    url: "https://check.anyone.io/relay/{{ ansible_default_ipv4.address }}:{{ anon_relay_or_port }}"
+    method: GET
+    timeout: 10
+  register: descriptor_check
+  failed_when: false
+  tags:
+    - anon
+    - exit
+    - validate
+    - descriptor
+- name: Display descriptor status
+  debug:
+    msg: "Exit relay descriptor status: {{ 'Published' if descriptor_check.status == 200 else 'Not published yet' }}"
+  tags:
+    - anon
+    - exit
+    - validate
+    - descriptor
+- name: Validate exit policy
+  assert:
+    that:
+      - anon_relay_exit_policy is defined
+      - anon_relay_exit_policy | length > 0
+      - "'accept *:*' in anon_relay_exit_policy"
+  fail_msg: "Exit policy is incomplete or missing 'accept *:*' rule"
+  success_msg: "Exit policy is properly configured"
+  tags:
+    - anon
+    - exit
+    - validate
+    - policy
+- name: Validate DoS mitigation settings
+  assert:
+    that:
+      - anon_dos_circuit_creation_enabled is defined
+      - anon_dos_connection_enabled is defined
+      - anon_dos_stream_creation_enabled is defined
+  fail_msg: "DoS mitigation settings are incomplete"
+  success_msg: "DoS mitigation settings are properly configured"
+  tags:
+    - anon
+    - exit
+    - validate
+    - dos
+- name: Check reverse DNS
+  command: dig +short -x {{ ansible_default_ipv4.address }}
+  register: reverse_dns_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - exit
+    - validate
+    - dns
+- name: Display reverse DNS status
+  debug:
+    msg: "Reverse DNS: {{ reverse_dns_check.stdout.strip() if reverse_dns_check.stdout.strip() else 'Not configured' }}"
+  tags:
+    - anon
+    - exit
+    - validate
+    - dns

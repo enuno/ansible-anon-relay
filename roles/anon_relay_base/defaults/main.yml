@@ -1,0 +1,46 @@
+# Default variables for anon_relay_base role
+# Base relay deployment shared by all relay types
+
+# Anon User Configuration
+anon_user: "anond"
+anon_uid: 100
+anon_gid: 101
+# Base Directories
+anon_base_dir: "/opt/anon"
+compose_dir: "/opt/compose-files"
+nyx_dir: "/root/.nyx"
+# Docker Configuration
+anon_docker_image: "svforte/anon:latest"
+anon_container_name: "anon-relay"
+anon_container_restart_policy: "unless-stopped"
+# Common Settings
+anon_accept_terms: true # Required for v0.4.9.7-live+
+anon_log_level: "notice"
+anon_log_file: "/var/log/anon/notices.log"
+# Network Configuration
+anon_ipv6_enabled: true
+# File Permissions
+anon_config_mode: '0644'
+anon_config_owner: "{{ anon_user }}"
+anon_config_group: "{{ anon_user }}"
+anon_data_mode: '0700'
+anon_data_owner: "{{ anon_user }}"
+anon_data_group: "{{ anon_user }}"
+# Container Configuration
+anon_container_ports:
+  - "{{ anon_relay_or_port | default(9001) }}:9001"
+  - "{{ anon_relay_dir_port | default(80) }}:80"
+  - "{{ anon_socks_port | default(9050) }}:9050"
+anon_container_volumes:
+  - "{{ anon_base_dir }}/etc/anon:/etc/anon:ro"
+  - "{{ anon_base_dir }}/run/anon:/var/lib/anon"
+  - "{{ anon_base_dir }}/logs:/var/log/anon"
+anon_container_environment:
+  - "ANON_ACCEPT_TERMS={{ anon_accept_terms | lower }}"
+# Monitoring Configuration
+anon_nyx_enabled: true
+anon_nyx_config_file: "{{ nyx_dir }}/config"
+# Log Rotation
+anon_log_rotation_enabled: true
+anon_log_rotation_max_size: "10M"
+anon_log_rotation_max_files: 3

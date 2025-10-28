@@ -1,0 +1,41 @@
+# Main preflight checks for Anon relay deployment
+# Validates system requirements before deployment
+- name: Display preflight check banner
+  debug:
+    msg: "Starting preflight checks for Anon relay deployment..."
+  tags:
+    - preflight
+    - checks
+- name: Check system requirements
+  include_tasks: system_requirements.yml
+  tags:
+    - preflight
+    - system
+- name: Check network connectivity
+  include_tasks: network_checks.yml
+  when: preflight_check_network | default(true)
+  tags:
+    - preflight
+    - network
+- name: Check Docker installation
+  include_tasks: docker_checks.yml
+  when: preflight_check_docker | default(true)
+  tags:
+    - preflight
+    - docker
+- name: Check port availability
+  include_tasks: port_checks.yml
+  when: preflight_check_ports | default(true)
+  tags:
+    - preflight
+    - ports
+- name: Check relay-specific requirements
+  include_tasks: relay_requirements.yml
+  tags:
+    - preflight
+    - relay
+- name: Display preflight check summary
+  include_tasks: summary.yml
+  tags:
+    - preflight
+    - summary

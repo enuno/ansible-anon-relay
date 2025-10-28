@@ -1,0 +1,57 @@
+# Configure performance monitoring
+- name: Create performance monitoring script
+  template:
+    src: performance_monitor.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/performance_monitor.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - performance
+    - script
+- name: Create performance monitoring cron job
+  cron:
+    name: "Anon relay performance monitoring"
+    job: "{{ anon_monitor_scripts_dir }}/performance_monitor.sh >> {{ anon_monitor_log_dir }}/performance.log 2>&1"
+    minute: "*/1" # Every minute
+    user: root
+  tags:
+    - anon
+    - monitor
+    - performance
+    - cron
+- name: Create performance alert script
+  template:
+    src: performance_alert.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/performance_alert.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  when: anon_alerts_enabled | default(false)
+  tags:
+    - anon
+    - monitor
+    - performance
+    - alert
+- name: Test performance monitoring script
+  command: "{{ anon_monitor_scripts_dir }}/performance_monitor.sh"
+  register: perf_test
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - monitor
+    - performance
+    - test
+- name: Display performance monitoring status
+  debug:
+    msg: "Performance monitoring test: {{ 'PASSED' if perf_test.rc == 0 else 'FAILED' }}"
+  tags:
+    - anon
+    - monitor
+    - performance
+    - test

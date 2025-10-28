@@ -1,19 +1,35 @@
-# .gitignore for Ansible Playbook Project
-
-# Ansible specific
+# Ansible-specific ignores
 *.retry
+*.log
 .ansible/
-*.vault_pass
-.vault_pass
-.vault_password
-vault_pass.txt
-group_vars/*/vault.yml.decrypted
-host_vars/*/vault.yml.decrypted
+ansible.log
 
-# Molecule
-.molecule/
-molecule/**/pytest_cache/
-molecule/**/__pycache__/
+# Inventory files (use inventory.example.ini as template)
+inventory.ini
+inventories/production.ini
+inventories/staging.ini
+
+# Ansible Vault files
+*.vault
+vault.yml
+vault.yaml
+group_vars/*/vault.yml
+group_vars/*/vault.yaml
+host_vars/*/vault.yml
+host_vars/*/vault.yaml
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # Python
 __pycache__/
@@ -21,140 +37,96 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-*.manifest
-*.spec
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Virtual environments
+env/
 venv/
 ENV/
-env/
-.venv/
-.ENV/
-.env/
+env.bak/
+venv.bak/
 
 # Testing
-.tox/
-.nox/
+.pytest_cache/
 .coverage
-.coverage.*
+htmlcov/
+.tox/
 .cache
 nosetests.xml
 coverage.xml
 *.cover
-*.log
-.pytest_cache/
 .hypothesis/
 
-# IDEs and Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-*.sublime-project
-*.sublime-workspace
-.project
-.pydevproject
-.settings/
+# Molecule
+.molecule/
+.cache/
 
-# OS specific
-Thumbs.db
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
+# Vagrant
+.vagrant/
+Vagrantfile.local
+
+# Docker
+docker-compose.override.yml
 
 # Backup files
 *.bak
 *.backup
-*.old
 *.orig
-*.tmp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Logs
 logs/
 *.log
-*.out
 
-# Secrets and credentials (NEVER COMMIT)
-*.pem
-*.key
-*.crt
-*.p12
-*.pfx
-*.jks
-secrets/
-credentials/
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
 .env
-.env.local
-.env.*.local
 
-# Temporary files
+# next.js build output
+.next
+
+# Nuxt.js build output
+.nuxt
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
 tmp/
 temp/
-*.tmp
-*.temp
-
-# Documentation builds
-docs/_build/
-docs/.doctrees/
-site/
-
-# CI/CD
-.gitlab-ci-local/
-
-# Terraform (if used alongside)
-.terraform/
-*.tfstate
-*.tfstate.*
-.terraform.lock.hcl
-
-# Vagrant
-.vagrant/
-*.box
-
-# Docker
-.docker/
-
-# Local development
-local/
-local-*
-
-# Ansible Galaxy downloaded roles/collections (if not tracking)
-# Uncomment if you don't want to track Galaxy installs
-# roles/external/
-# collections/
-
-# Ansible vault temporary files
-*.vault.tmp
-
-# Pre-commit
-.pre-commit-config.yaml.lock
-
-# Misc
-.idea_modules/
-atlassian-ide-plugin.xml
-com_crashlytics_export_strings.xml
-crashlytics.properties
-crashlytics-build.properties
-fabric.properties

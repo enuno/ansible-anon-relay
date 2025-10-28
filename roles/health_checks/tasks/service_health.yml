@@ -1,0 +1,57 @@
+# Anon service health checks
+- name: Check Anon relay process
+  command: docker exec {{ health_check_container_name }} ps aux | grep anon
+  register: anon_process_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - health
+    - service
+    - process
+- name: Assert Anon process is running
+  assert:
+    that:
+      - anon_process_check.rc == 0
+      - "'anon' in anon_process_check.stdout"
+  fail_msg: "Anon process is not running in container"
+  success_msg: "Anon process is running in container"
+  tags:
+    - health
+    - service
+    - process
+- name: Check Anon control socket
+  stat:
+    path: "{{ anon_base_dir }}/run/anon/control"
+  register: control_socket_check
+  tags:
+    - health
+    - service
+    - socket
+- name: Assert Anon control socket exists
+  assert:
+    that:
+      - control_socket_check.stat.exists
+  fail_msg: "Anon control socket does not exist"
+  success_msg: "Anon control socket exists"
+  tags:
+    - health
+    - service
+    - socket
+- name: Check Anon configuration file
+  stat:
+    path: "{{ anon_base_dir }}/etc/anon/anonrc"
+  register: config_file_check
+  tags:
+    - health
+    - service
+    - config
+- name: Assert Anon configuration file exists
+  assert:
+    that:
+      - config_file_check.stat.exists
+  fail_msg: "Anon configuration file does not exist"
+  success_msg: "Anon configuration file exists"
+  tags:
+    - health
+    - service
+    - config

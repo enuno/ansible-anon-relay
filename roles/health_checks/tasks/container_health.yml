@@ -1,0 +1,59 @@
+# Anon container health checks
+- name: Check if Anon container exists
+  community.docker.docker_container_info:
+    name: "{{ health_check_container_name }}"
+  register: container_info
+  tags:
+    - health
+    - container
+    - exists
+- name: Assert Anon container exists
+  assert:
+    that:
+      - container_info.exists
+  fail_msg: "Anon container '{{ health_check_container_name }}' does not exist"
+  success_msg: "Anon container '{{ health_check_container_name }}' exists"
+  tags:
+    - health
+    - container
+    - exists
+- name: Check Anon container status
+  assert:
+    that:
+      - container_info.container.State.Status == "running"
+  fail_msg: "Anon container is not running (status: {{ container_info.container.State.Status }})"
+  success_msg: "Anon container is running"
+  tags:
+    - health
+    - container
+    - status
+- name: Check Anon container health status
+  assert:
+    that:
+      - container_info.container.State.Health.Status == "healthy"
+  fail_msg: "Anon container is not healthy (status: {{ container_info.container.State.Health.Status }})"
+  success_msg: "Anon container is healthy"
+  when:
+    - health_check_container_healthy | default(true)
+    - container_info.container.State.Health is defined
+  tags:
+    - health
+    - container
+    - health_status
+- name: Get container restart count
+  set_fact:
+    container_restart_count: "{{ container_info.container.RestartCount }}"
+  tags:
+    - health
+    - container
+    - restarts
+- name: Check container restart count
+  assert:
+    that:
+      - container_restart_count | int <= 5
+  fail_msg: "Anon container has restarted too many times ({{ container_restart_count }} restarts)"
+  success_msg: "Anon container restart count is acceptable ({{ container_restart_count }} restarts)"
+  tags:
+    - health
+    - container
+    - restarts

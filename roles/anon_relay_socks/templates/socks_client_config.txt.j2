@@ -1,0 +1,94 @@
+# {{ ansible_managed }}
+# SOCKS Proxy Client Configuration
+# Generated from: {{ role_path }}/templates/socks_client_config.txt.j2
+
+===========================================
+SOCKS PROXY CLIENT CONFIGURATION
+===========================================
+
+Proxy Information:
+- Server: {{ anon_socks_bind_address }}
+- Port: {{ anon_socks_port }}
+- Type: SOCKS5
+- Authentication: None (if supported)
+
+===========================================
+BROWSER CONFIGURATION
+===========================================
+
+Firefox:
+1. Open Firefox preferences
+2. Go to Network Settings
+3. Select "Manual proxy configuration"
+4. Enter SOCKS Host: {{ anon_socks_bind_address }}
+5. Enter Port: {{ anon_socks_port }}
+6. Select "SOCKS v5"
+7. Check "Proxy DNS when using SOCKS v5"
+
+Chrome/Chromium:
+1. Install "Proxy SwitchyOmega" extension
+2. Create new profile
+3. Set SOCKS proxy to {{ anon_socks_bind_address }}:{{ anon_socks_port }}
+4. Select "SOCKS5" protocol
+
+Safari:
+1. Open System Preferences > Network
+2. Select your network connection
+3. Click "Advanced" > "Proxies"
+4. Check "SOCKS Proxy"
+5. Enter {{ anon_socks_bind_address }}:{{ anon_socks_port }}
+
+===========================================
+SYSTEM CONFIGURATION
+===========================================
+
+Linux (using environment variables):
+export http_proxy=socks5://{{ anon_socks_bind_address }}:{{ anon_socks_port }}
+export https_proxy=socks5://{{ anon_socks_bind_address }}:{{ anon_socks_port }}
+export all_proxy=socks5://{{ anon_socks_bind_address }}:{{ anon_socks_port }}
+
+Windows (using netsh):
+netsh winhttp set proxy proxy-server="socks={{ anon_socks_bind_address }}:{{ anon_socks_port }}"
+
+macOS (using networksetup):
+networksetup -setsocksfirewallproxy "Wi-Fi" {{ anon_socks_bind_address }} {{ anon_socks_port }}
+
+===========================================
+APPLICATION CONFIGURATION
+===========================================
+
+curl:
+curl --socks5 {{ anon_socks_bind_address }}:{{ anon_socks_port }} https://httpbin.org/ip
+
+wget:
+wget --proxy=on --socks5={{ anon_socks_bind_address }}:{{ anon_socks_port }} https://httpbin.org/ip
+
+git:
+git config --global http.proxy socks5://{{ anon_socks_bind_address }}:{{ anon_socks_port }}
+
+===========================================
+TESTING CONNECTION
+===========================================
+
+Run the test script:
+{{ anon_socks_client_config_path }}/test-proxy.sh
+
+Or test manually:
+curl --socks5 {{ anon_socks_bind_address }}:{{ anon_socks_port }} https://httpbin.org/ip
+
+Expected result: Your public IP address should be different from your local IP.
+
+===========================================
+TROUBLESHOOTING
+===========================================
+
+Common issues:
+1. Connection refused: Check if SOCKS proxy is running
+2. Timeout: Check firewall settings
+3. DNS issues: Enable "Proxy DNS" in browser settings
+4. Application not working: Some apps don't support SOCKS5
+
+For support, check the logs:
+docker logs {{ anon_container_name | default('anon-relay') }}
+
+===========================================

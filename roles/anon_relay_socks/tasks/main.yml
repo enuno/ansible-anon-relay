@@ -1,0 +1,39 @@
+# Main tasks for anon_relay_socks role
+# SOCKS proxy configuration for local network use
+- name: Display experimental warning
+  debug:
+    msg: |
+      ===========================================
+      SOCKS PROXY EXPERIMENTAL WARNING
+      ===========================================
+      WARNING: SOCKS proxy configuration is experimental!
+
+      This feature may not work as expected and is
+      provided for testing purposes only.
+
+      Use at your own risk.
+      ===========================================
+  when: anon_socks_experimental | default(true)
+  tags:
+    - anon
+    - socks
+    - warning
+- name: Configure SOCKS proxy
+  include_tasks: configure.yml
+  tags:
+    - anon
+    - socks
+    - configure
+- name: Configure client access
+  include_tasks: client_config.yml
+  when: anon_socks_client_config_enabled | default(true)
+  tags:
+    - anon
+    - socks
+    - client
+- name: Validate SOCKS proxy configuration
+  include_tasks: validate.yml
+  tags:
+    - anon
+    - socks
+    - validate

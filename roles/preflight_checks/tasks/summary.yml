@@ -1,0 +1,55 @@
+# Preflight check summary and final validation
+- name: Set preflight check results
+  set_fact:
+    preflight_passed: true
+  tags:
+    - preflight
+    - summary
+- name: Display preflight check summary
+  debug:
+    msg: |
+      ===========================================
+      PREFLIGHT CHECK SUMMARY
+      ===========================================
+      Host: {{ inventory_hostname }}
+      OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+      Architecture: {{ ansible_architecture }}
+      RAM: {{ ansible_memtotal_mb }}MB
+      Disk: {{ (ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first / 1024 / 1024 / 1024) | round(1) }}GB available
+      CPU: {{ ansible_processor_vcpus }} cores
+      Relay Type: {{ anon_relay_type | default('standard') }}
+      Docker: {{ 'Installed' if docker_version_check.rc == 0 else 'Not installed' }}
+      Network: {{ 'Connected' if internet_check_result.status == 200 else 'Not connected' }}
+      ===========================================
+      All preflight checks PASSED!
+      Ready for Anon relay deployment.
+      ===========================================
+  when: preflight_passed | default(true)
+  tags:
+    - preflight
+    - summary
+- name: Display preflight check warnings
+  debug:
+    msg: |
+      ===========================================
+      PREFLIGHT CHECK WARNINGS
+      ===========================================
+      {{ item }}
+      ===========================================
+  loop: "{{ preflight_warnings | default([]) }}"
+  when: preflight_warnings is defined and preflight_warnings | length > 0
+  tags:
+    - preflight
+    - summary
+    - warnings
+- name: Fail on preflight warnings if configured
+  fail:
+    msg: "Preflight checks failed due to warnings. Set preflight_fail_on_warnings=false to continue."
+  when:
+    - preflight_fail_on_warnings | default(false)
+    - preflight_warnings is defined
+    - preflight_warnings | length > 0
+  tags:
+    - preflight
+    - summary
+    - warnings

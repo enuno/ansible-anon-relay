@@ -1,0 +1,57 @@
+# Variables for SOCKS proxies
+# Local proxy server for LAN devices to use Anyone network
+
+# Relay Type
+anon_relay_type: "socks"
+# SOCKS Proxy Configuration
+anon_socks_port: 9050
+anon_socks_bind_address: "192.168.1.10" # LAN IP
+anon_socks_policy_accept: "192.168.1.0/24" # LAN subnet
+# Disable Relay Functionality
+anon_relay_or_port: 0
+anon_relay_dir_port: 0
+anon_relay_socks_port: "{{ anon_socks_port }}"
+# Basic Configuration
+anon_relay_nickname: "MySOCKSProxy"
+anon_relay_contact: "admin@example.com"
+# Bandwidth Configuration (varies by usage)
+anon_relay_bandwidth_rate: "50 MBytes"
+anon_relay_bandwidth_burst: "100 MBytes"
+# Network Configuration (No port forwarding needed)
+anon_port_forward_required: false
+anon_ipv6_enabled: false
+# Firewall Configuration (LAN access only)
+anon_firewall_enabled: true
+anon_firewall_lan_only: true
+anon_firewall_rules:
+  - port: "{{ anon_socks_port }}"
+    proto: "tcp"
+    action: "allow"
+    source: "{{ anon_socks_policy_accept }}"
+    comment: "SOCKS proxy for LAN"
+  - port: "{{ anon_ssh_port }}"
+    proto: "tcp"
+    action: "allow"
+    comment: "SSH access"
+# Security Settings (Standard level)
+anon_ssh_port: 22
+anon_ssh_root_login: false
+anon_ssh_password_auth: false
+anon_fail2ban_enabled: true
+# Resource Requirements (Lower for SOCKS proxies)
+preflight_min_ram_mb: 256
+preflight_min_disk_gb: 2
+preflight_min_cpu_cores: 1
+# Preflight Checks (SOCKS specific)
+preflight_required_ports:
+  - 22 # SSH
+  # No ORPort required for SOCKS proxies
+# Health Check Settings
+health_check_orport: false # No ORPort for SOCKS
+health_check_socks: true
+health_check_socks_timeout: 10
+health_check_logs: true
+health_check_performance: false
+# Experimental Warning
+anon_socks_experimental: true
+anon_socks_warning: "SOCKS proxy configuration is experimental and may not work as expected"

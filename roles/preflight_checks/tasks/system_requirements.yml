@@ -1,0 +1,42 @@
+# System resource requirement checks
+- name: Check available RAM
+  assert:
+    that:
+      - ansible_memtotal_mb >= preflight_min_ram_mb
+    fail_msg: "Insufficient RAM: {{ ansible_memtotal_mb }}MB (minimum {{ preflight_min_ram_mb }}MB required)"
+    success_msg: "RAM check passed: {{ ansible_memtotal_mb }}MB available"
+  tags:
+    - preflight
+    - system
+    - ram
+- name: Check available disk space
+  assert:
+    that:
+      - ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first > (preflight_min_disk_gb * 1024 * 1024 * 1024)
+    fail_msg: "Insufficient disk space: {{ (ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first / 1024 / 1024 / 1024) | round(1) }}GB (minimum {{ preflight_min_disk_gb }}GB required)"
+    success_msg: "Disk space check passed: {{ (ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first / 1024 / 1024 / 1024) | round(1) }}GB available"
+  tags:
+    - preflight
+    - system
+    - disk
+- name: Check CPU cores
+  assert:
+    that:
+      - ansible_processor_vcpus >= preflight_min_cpu_cores
+    fail_msg: "Insufficient CPU cores: {{ ansible_processor_vcpus }} (minimum {{ preflight_min_cpu_cores }} required)"
+    success_msg: "CPU check passed: {{ ansible_processor_vcpus }} cores available"
+  tags:
+    - preflight
+    - system
+    - cpu
+- name: Check operating system compatibility
+  assert:
+    that:
+      - ansible_os_family in ['Debian', 'RedHat']
+      - (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 20) or (ansible_distribution == 'Debian' and ansible_distribution_major_version | int >= 10) or (ansible_distribution == 'Fedora' and ansible_distribution_major_version | int >= 35)
+    fail_msg: "Unsupported operating system: {{ ansible_distribution }} {{ ansible_distribution_version }} (Ubuntu 20.04+, Debian 10+, or Fedora 35+ required)"
+    success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+  tags:
+    - preflight
+    - system
+    - os

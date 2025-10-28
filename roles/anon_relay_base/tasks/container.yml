@@ -1,0 +1,88 @@
+# Docker container management
+- name: Pull Anon Docker image
+  community.docker.docker_image:
+    name: "{{ anon_docker_image }}"
+    source: pull
+    force_source: false
+  tags:
+    - anon
+    - container
+    - image
+- name: Stop existing Anon container
+  community.docker.docker_container:
+    name: "{{ anon_container_name }}"
+    state: stopped
+  ignore_errors: yes
+  tags:
+    - anon
+    - container
+    - stop
+- name: Remove existing Anon container
+  community.docker.docker_container:
+    name: "{{ anon_container_name }}"
+    state: absent
+  ignore_errors: yes
+  tags:
+    - anon
+    - container
+    - remove
+- name: Create and start Anon container
+  community.docker.docker_container:
+    name: "{{ anon_container_name }}"
+    image: "{{ anon_docker_image }}"
+    state: started
+    restart_policy: "{{ anon_container_restart_policy }}"
+    ports: "{{ anon_container_ports | default([]) }}"
+    volumes: "{{ anon_container_volumes | default([]) }}"
+    env: "{{ anon_container_environment | default({}) }}"
+    command: >
+      anon -f /etc/anon/anonrc --DataDirectory /var/lib/anon --Log {{ anon_log_level }} file {{ anon_log_file }}
+
+    detach: yes
+    recreate: yes
+  tags:
+    - anon
+    - container
+    - start
+- name: Wait for container to be ready
+  wait_for:
+    port: "{{ anon_relay_or_port | default(9001) }}"
+    host: "{{ ansible_default_ipv4.address }}"
+    timeout: 30
+  ignore_errors: yes
+  when: anon_relay_or_port is defined and anon_relay_or_port > 0
+  tags:
+    - anon
+    - container
+    - wait
+- name: Verify container is running
+  community.docker.docker_container_info:
+    name: "{{ anon_container_name }}"
+  register: container_info
+  tags:
+    - anon
+    - container
+    - verify
+- name: Assert container is running
+  assert:
+    that:
+      - container_info.exists
+      - container_info.container.State.Status == "running"
+  fail_msg: "Anon container is not running"
+  success_msg: "Anon container is running"
+  tags:
+    - anon
+    - container
+    - verify
+- name: Display container information
+  debug:
+    msg: |
+      Anon container deployed:
+      - Name: {{ anon_container_name }}
+      - Image: {{ anon_docker_image }}
+      - Status: {{ container_info.container.State.Status }}
+      - Restart Count: {{ container_info.container.RestartCount }}
+  tags:
+    - anon
+    - container
+    - info

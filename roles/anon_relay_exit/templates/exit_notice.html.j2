@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ anon_exit_notice_title | default('Anyone Protocol Exit Relay') }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .contact {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ anon_exit_notice_title | default('Anyone Protocol Exit Relay') }}</h1>
+        <p><strong>Relay Nickname:</strong> {{ anon_relay_nickname | default('AnonExitRelay') }}</p>
+        <p><strong>IP Address:</strong> {{ ansible_default_ipv4.address }}</p>
+        <p><strong>ORPort:</strong> {{ anon_relay_or_port | default(9001) }}</p>
+    </div>
+
+    <div class="warning">
+        <h2>⚠️ Important Notice</h2>
+        <p>This is an exit relay for the Anyone Protocol network. Traffic from this IP address may appear to originate from this server, but it actually comes from users of the Anyone Protocol network.</p>
+    </div>
+
+    <div class="info">
+        <h2>What is an Exit Relay?</h2>
+        <p>An exit relay is the final node in the Anyone Protocol network that connects to the regular internet. When users browse the web through the Anyone Protocol, their traffic appears to come from this server's IP address.</p>
+        
+        <p>This relay:</p>
+        <ul>
+            <li>Routes traffic from Anyone Protocol users to the regular internet</li>
+            <li>Does not log or store user activity</li>
+            <li>Operates with a restrictive exit policy to block high-risk ports</li>
+            <li>Is operated by: {{ anon_relay_contact | default('abuse@example.com') }}</li>
+        </ul>
+    </div>
+
+    <div class="contact">
+        <h2>Contact Information</h2>
+        <p><strong>Abuse Contact:</strong> {{ anon_exit_notice_email | default('abuse@example.com') }}</p>
+        <p><strong>Relay Operator:</strong> {{ anon_relay_contact | default('abuse@example.com') }}</p>
+        
+        <h3>Reporting Issues</h3>
+        <p>If you have concerns about traffic from this IP address:</p>
+        <ol>
+            <li>Check if the activity is related to the Anyone Protocol network</li>
+            <li>Contact the abuse email above with specific details</li>
+            <li>Include timestamps and any relevant logs</li>
+        </ol>
+    </div>
+
+    <div class="info">
+        <h2>Exit Policy</h2>
+        <p>This relay blocks traffic to high-risk ports to reduce abuse potential:</p>
+        <ul>
+            <li>SMTP ports (25, 587, 465, 2525) - Email spam prevention</li>
+            <li>RDP port (3389) - Remote desktop access</li>
+            <li>Telnet port (23) - Unencrypted remote access</li>
+            <li>VNC port (5900) - Remote desktop sharing</li>
+            <li>Custom high-risk ports (9999)</li>
+        </ul>
+        <p>All other traffic is allowed through this exit relay.</p>
+    </div>
+
+    <div class="footer">
+        <p><strong>Legal Notice:</strong> This relay is operated in compliance with local laws and regulations. The operator is not responsible for the content of traffic that passes through this relay, as it originates from third-party users of the Anyone Protocol network.</p>
+        
+        <p><strong>Technical Details:</strong> This is an Anyone Protocol exit relay running version {{ anon_docker_image | default('svforte/anon:latest') }}. The relay operates with DoS mitigation enabled and follows security best practices.</p>
+        
+        <p><em>Last updated: {{ ansible_date_time.iso8601 }}</em></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,120 @@
+# Security hardening for standard relay
+- name: Install fail2ban
+  package:
+    name: fail2ban
+    state: present
+  tags:
+    - anon
+    - standard
+    - security
+    - fail2ban
+- name: Configure fail2ban for SSH protection
+  copy:
+    content: |
+      [DEFAULT]
+      bantime = 3600
+      findtime = 600
+      maxretry = 3
+      backend = systemd
+
+      [sshd]
+      enabled = true
+      port = {{ anon_ssh_port }}
+      filter = sshd
+      logpath = /var/log/auth.log
+      maxretry = 3
+      bantime = 3600
+    dest: /etc/fail2ban/jail.local
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  notify: restart fail2ban
+  tags:
+    - anon
+    - standard
+    - security
+    - fail2ban
+- name: Start and enable fail2ban
+  systemd:
+    name: fail2ban
+    state: started
+    enabled: yes
+  tags:
+    - anon
+    - standard
+    - security
+    - fail2ban
+- name: Configure SSH hardening
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    backup: yes
+  loop:
+    - {regexp: '^#?Port', line: 'Port {{ anon_ssh_port }}'}
+    - {regexp: '^#?PermitRootLogin', line: 'PermitRootLogin {{ "yes" if anon_ssh_root_login | default(false) else "no" }}'}
+    - {regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication {{ "yes" if anon_ssh_password_auth | default(false) else "no" }}'}
+    - {regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes'}
+    - {regexp: '^#?X11Forwarding', line: 'X11Forwarding {{ "yes" if anon_ssh_x11_forwarding | default(false) else "no" }}'}
+    - {regexp: '^#?MaxAuthTries', line: 'MaxAuthTries {{ anon_ssh_max_auth_tries | default(3) }}'}
+    - {regexp: '^#?ClientAliveInterval', line: 'ClientAliveInterval {{ anon_ssh_client_alive_interval | default(300) }}'}
+    - {regexp: '^#?ClientAliveCountMax', line: 'ClientAliveCountMax {{ anon_ssh_client_alive_count_max | default(2) }}'}
+    - {regexp: '^#?LoginGraceTime', line: 'LoginGraceTime {{ anon_ssh_login_grace_time | default(60) }}'}
+    - {regexp: '^#?AllowUsers', line: 'AllowUsers {{ ansible_user }}'}
+  notify: restart ssh
+  tags:
+    - anon
+    - standard
+    - security
+    - ssh
+- name: Configure SSH banner
+  copy:
+    content: |
+      WARNING: This system is for authorized users only.
+      All activities are logged and monitored.
+      Unauthorized access is prohibited and will be prosecuted.
+    dest: /etc/ssh/banner
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - anon
+    - standard
+    - security
+    - ssh
+- name: Set SSH banner in config
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Banner'
+    line: 'Banner /etc/ssh/banner'
+    state: present
+    backup: yes
+  notify: restart ssh
+  tags:
+    - anon
+    - standard
+    - security
+    - ssh
+- name: Verify SSH configuration
+  command: sshd -t
+  register: ssh_config_test
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - standard
+    - security
+    - ssh
+- name: Assert SSH configuration is valid
+  assert:
+    that:
+      - ssh_config_test.rc == 0
+  fail_msg: "SSH configuration is invalid: {{ ssh_config_test.stderr }}"
+  success_msg: "SSH configuration is valid"
+  tags:
+    - anon
+    - standard
+    - security
+    - ssh

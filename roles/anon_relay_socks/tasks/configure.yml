@@ -1,0 +1,44 @@
+# SOCKS proxy configuration tasks
+- name: Deploy SOCKS proxy configuration
+  template:
+    src: anonrc_socks.j2
+    dest: "{{ anon_base_dir }}/etc/anon/anonrc"
+    mode: '{{ anon_config_mode | default("0644") }}'
+    owner: "{{ anon_config_owner | default('root') }}"
+    group: "{{ anon_config_group | default('root') }}"
+    backup: yes
+  notify: restart anon relay
+  tags:
+    - anon
+    - socks
+    - configure
+    - anonrc
+- name: Update Docker Compose configuration for SOCKS proxy
+  template:
+    src: relay.yaml.j2
+    dest: "{{ compose_dir }}/relay.yaml"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  notify: restart anon relay
+  tags:
+    - anon
+    - socks
+    - configure
+    - compose
+- name: Configure firewall rules for SOCKS proxy
+  include_tasks: firewall.yml
+  when: anon_firewall_enabled | default(true)
+  tags:
+    - anon
+    - socks
+    - configure
+    - firewall
+- name: Configure network access policy
+  include_tasks: network_policy.yml
+  tags:
+    - anon
+    - socks
+    - configure
+    - network

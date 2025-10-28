@@ -1,0 +1,56 @@
+# Configure network monitoring
+- name: Create network monitoring script
+  template:
+    src: network_monitor.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/network_monitor.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - network
+    - script
+- name: Create network monitoring cron job
+  cron:
+    name: "Anon relay network monitoring"
+    job: "{{ anon_monitor_scripts_dir }}/network_monitor.sh >> {{ anon_monitor_log_dir }}/network.log 2>&1"
+    minute: "*/1" # Every minute
+    user: root
+  tags:
+    - anon
+    - monitor
+    - network
+    - cron
+- name: Create port check script
+  template:
+    src: port_check.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/port_check.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - network
+    - script
+- name: Test network monitoring script
+  command: "{{ anon_monitor_scripts_dir }}/network_monitor.sh"
+  register: net_test
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - monitor
+    - network
+    - test
+- name: Display network monitoring status
+  debug:
+    msg: "Network monitoring test: {{ 'PASSED' if net_test.rc == 0 else 'FAILED' }}"
+  tags:
+    - anon
+    - monitor
+    - network
+    - test

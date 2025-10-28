@@ -1,0 +1,79 @@
+# Port availability and connectivity checks
+- name: Check if required ports are available
+  wait_for:
+    port: "{{ item }}"
+    host: "{{ ansible_default_ipv4.address }}"
+    timeout: 1
+  register: port_check_result
+  failed_when: false
+  loop: "{{ preflight_required_ports }}"
+  tags:
+    - preflight
+    - ports
+    - availability
+- name: Check port availability results
+  set_fact:
+    unavailable_ports: "{{ preflight_required_ports | select('match', '.*') | list }}"
+  when: port_check_result.results | selectattr('failed', 'equalto', true) | list | length > 0
+  tags:
+    - preflight
+    - ports
+    - availability
+- name: Display port availability status
+  debug:
+    msg: "Port {{ item.item }}: {{ 'Available' if not item.failed else 'In use or blocked' }}"
+  loop: "{{ port_check_result.results }}"
+  tags:
+    - preflight
+    - ports
+    - availability
+- name: Check ORPort reachability (if port forwarding is required)
+  uri:
+    url: "http://{{ ansible_default_ipv4.address }}:{{ anon_relay_or_port | default(9001) }}"
+    method: GET
+    timeout: 5
+  register: orport_check_result
+  failed_when: false
+  when: anon_port_forward_required | default(false)
+  tags:
+    - preflight
+    - ports
+    - orport
+- name: Display ORPort reachability status
+  debug:
+    msg: "ORPort {{ anon_relay_or_port | default(9001) }} reachability: {{ 'Reachable' if orport_check_result.status == 200 else 'Not reachable (port forwarding may be required)' }}"
+  when: anon_port_forward_required | default(false)
+  tags:
+    - preflight
+    - ports
+    - orport
+- name: Check for CGNAT (Carrier-Grade NAT)
+  uri:
+    url: "https://api.ipify.org"
+    method: GET
+    timeout: 10
+  register: public_ip_check
+  failed_when: false
+  tags:
+    - preflight
+    - network
+    - cgnat
+- name: Compare public IP with local IP
+  set_fact:
+    is_cgnat: "{{ public_ip_check.content != ansible_default_ipv4.address }}"
+  tags:
+    - preflight
+    - network
+    - cgnat
+- name: Display CGNAT warning
+  debug:
+    msg: |
+      WARNING: CGNAT detected!
+      Public IP: {{ public_ip_check.content }}
+      Local IP: {{ ansible_default_ipv4.address }}
+      Port forwarding may not work with CGNAT.
+  when: is_cgnat | default(false)
+  tags:
+    - preflight
+    - network
+    - cgnat

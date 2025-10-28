@@ -1,0 +1,55 @@
+# IPv6 configuration for standard relay
+- name: Check IPv6 availability
+  command: ping6 -c 1 google.com
+  register: ipv6_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - standard
+    - ipv6
+    - check
+- name: Display IPv6 status
+  debug:
+    msg: "IPv6 connectivity: {{ 'Available' if ipv6_check.rc == 0 else 'Not available' }}"
+  tags:
+    - anon
+    - standard
+    - ipv6
+    - check
+- name: Configure IPv6 for Anon
+  lineinfile:
+    path: "{{ anon_base_dir }}/etc/anon/anonrc"
+    line: "IPv6Exit 0"
+    state: present
+    backup: yes
+  tags:
+    - anon
+    - standard
+    - ipv6
+    - config
+- name: Configure IPv6 ORPort
+  lineinfile:
+    path: "{{ anon_base_dir }}/etc/anon/anonrc"
+    line: "ORPort [{{ ansible_default_ipv6.address }}]:{{ anon_relay_or_port }}"
+    state: present
+    backup: yes
+  when: ansible_default_ipv6.address is defined
+  tags:
+    - anon
+    - standard
+    - ipv6
+    - config
+- name: Update Docker Compose for IPv6
+  lineinfile:
+    path: "{{ compose_dir }}/relay.yaml"
+    line: "      - \"[{{ ansible_default_ipv6.address }}]:{{ anon_relay_or_port }}:9001\""
+    insertafter: "    ports:"
+    state: present
+    backup: yes
+  when: ansible_default_ipv6.address is defined
+  tags:
+    - anon
+    - standard
+    - ipv6
+    - compose

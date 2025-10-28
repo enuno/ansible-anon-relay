@@ -1,0 +1,38 @@
+# Host-specific variables for exit1.example.com
+# Example exit relay configuration
+
+# Override global settings for this specific host
+anon_relay_nickname: "Exit1-Example"
+anon_relay_contact: "abuse@example.com"
+# Legal acknowledgment (REQUIRED for exit relays)
+anon_exit_legal_acknowledged: true
+# Bandwidth settings for this exit relay
+anon_relay_bandwidth_rate: "500 MBytes"
+anon_relay_bandwidth_burst: "1000 MBytes"
+# Exit policy (can be customized per host)
+anon_relay_exit_policy:
+  - "reject *:25" # SMTP
+  - "reject *:587" # SMTP Submission
+  - "reject *:465" # SMTPS
+  - "reject *:2525" # SMTP Alternative
+  - "reject *:3389" # RDP
+  - "reject *:23" # Telnet
+  - "reject *:3128" # HTTP Proxy
+  - "reject *:5900" # VNC
+  - "reject *:9999" # Custom high-risk
+  - "accept *:*" # Accept everything else
+# Exit notice configuration
+anon_exit_notice_email: "abuse@example.com"
+anon_exit_notice_title: "Example Exit Relay"
+anon_exit_notice_message: "This is an exit relay for the Anyone Protocol network operated by Example Corp."
+# Reverse DNS configuration
+anon_reverse_dns_hostname: "exit1.example.com"
+# Security settings (enhanced for exit relay)
+anon_ssh_port: 52231 # Non-standard port
+anon_fail2ban_enabled: true
+# Resource settings (higher for exit relay)
+anon_max_mem_in_mb: 2048
+anon_max_cpu_percent: 80
+# DoS mitigation settings
+anon_dos_circuit_creation_burst: 50
+anon_dos_circuit_creation_rate: 5

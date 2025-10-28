@@ -1,0 +1,78 @@
+# Directory creation and permission management
+- name: Create base anon directory
+  file:
+    path: "{{ anon_base_dir }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  tags:
+    - anon
+    - directories
+    - base
+- name: Create anon configuration directory
+  file:
+    path: "{{ anon_base_dir }}/etc/anon"
+    state: directory
+    mode: '{{ anon_config_mode }}'
+    owner: "{{ anon_config_owner }}"
+    group: "{{ anon_config_group }}"
+  tags:
+    - anon
+    - directories
+    - config
+- name: Create anon data directory
+  file:
+    path: "{{ anon_base_dir }}/run/anon"
+    state: directory
+    mode: '{{ anon_data_mode }}'
+    owner: "{{ anon_data_owner }}"
+    group: "{{ anon_data_group }}"
+  tags:
+    - anon
+    - directories
+    - data
+- name: Create anon logs directory
+  file:
+    path: "{{ anon_base_dir }}/logs"
+    state: directory
+    mode: '0755'
+    owner: "{{ anon_data_owner }}"
+    group: "{{ anon_data_group }}"
+  tags:
+    - anon
+    - directories
+    - logs
+- name: Create compose files directory
+  file:
+    path: "{{ compose_dir }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  tags:
+    - anon
+    - directories
+    - compose
+- name: Create Nyx configuration directory
+  file:
+    path: "{{ nyx_dir }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  when: anon_nyx_enabled | default(true)
+  tags:
+    - anon
+    - directories
+    - nyx
+- name: Set proper ownership on anon base directory
+  file:
+    path: "{{ anon_base_dir }}"
+    owner: "{{ anon_data_owner }}"
+    group: "{{ anon_data_group }}"
+    recurse: yes
+  tags:
+    - anon
+    - directories
+    - ownership

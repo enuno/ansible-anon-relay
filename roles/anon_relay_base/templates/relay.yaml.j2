@@ -1,0 +1,53 @@
+# {{ ansible_managed }}
+# Docker Compose configuration for Anon Relay
+# Generated from: {{ role_path }}/templates/relay.yaml.j2
+
+version: '3.8'
+
+services:
+  anon-relay:
+    image: {{ anon_docker_image }}
+    container_name: {{ anon_container_name }}
+    restart: {{ anon_container_restart_policy }}
+    ports:
+{% if anon_relay_or_port is defined and anon_relay_or_port > 0 %}
+      - "{{ anon_relay_or_port }}:9001"
+{% endif %}
+{% if anon_relay_dir_port is defined and anon_relay_dir_port > 0 %}
+      - "{{ anon_relay_dir_port }}:80"
+{% endif %}
+{% if anon_socks_port is defined and anon_socks_port > 0 %}
+      - "{{ anon_socks_bind_address | default('127.0.0.1') }}:{{ anon_socks_port }}:9050"
+{% endif %}
+    volumes:
+      - "{{ anon_base_dir }}/etc/anon:/etc/anon:ro"
+      - "{{ anon_base_dir }}/run/anon:/var/lib/anon"
+      - "{{ anon_base_dir }}/logs:/var/log/anon"
+    environment:
+      - ANON_ACCEPT_TERMS={{ anon_accept_terms | lower }}
+{% if anon_ipv6_enabled | default(false) %}
+      - ANON_IPV6_ENABLED=true
+{% endif %}
+    command: >
+      anon
+      -f /etc/anon/anonrc
+      --DataDirectory /var/lib/anon
+      --Log {{ anon_log_level }} file {{ anon_log_file }}
+{% if anon_max_mem_in_mb is defined %}
+    mem_limit: {{ anon_max_mem_in_mb }}m
+{% endif %}
+{% if anon_max_cpu_percent is defined %}
+    cpus: "{{ anon_max_cpu_percent / 100 }}"
+{% endif %}
+    healthcheck:
+      test: ["CMD", "docker", "exec", "{{ anon_container_name }}", "anon", "--verify-config", "-f", "/etc/anon/anonrc"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - anon-network
+
+networks:
+  anon-network:
+    driver: bridge

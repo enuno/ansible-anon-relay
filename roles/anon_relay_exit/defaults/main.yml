@@ -1,0 +1,87 @@
+# Default variables for anon_relay_exit role
+# Exit relay configuration - WARNING: Your IP will be visible to destination sites
+
+# Relay Type
+anon_relay_type: "exit"
+# Legal Acknowledgment (REQUIRED)
+anon_exit_legal_acknowledged: false # Must be set to true
+# Exit Relay Configuration
+anon_relay_nickname: "MyExitRelay"
+anon_relay_contact: "abuse@example.com" # Non-personal email
+anon_relay_or_port: 9001
+anon_relay_dir_port: 80
+anon_relay_socks_port: 0
+anon_relay_exit_relay: 1
+anon_relay_ipv6_exit: 0
+# Bandwidth Configuration (higher for exit relays)
+anon_relay_bandwidth_rate: "200 MBytes"
+anon_relay_bandwidth_burst: "400 MBytes"
+# Exit Policy (Restrictive - blocks high-risk ports)
+anon_relay_exit_policy:
+  - "reject *:25" # SMTP
+  - "reject *:587" # SMTP Submission
+  - "reject *:465" # SMTPS
+  - "reject *:2525" # SMTP Alternative
+  - "reject *:3389" # RDP
+  - "reject *:23" # Telnet
+  - "reject *:3128" # HTTP Proxy
+  - "reject *:5900" # VNC
+  - "reject *:9999" # Custom high-risk
+  - "accept *:*" # Accept everything else
+# Exit Notice Configuration
+anon_exit_notice_email: "abuse@example.com"
+anon_exit_notice_enabled: true
+anon_exit_notice_title: "Anyone Protocol Exit Relay"
+anon_exit_notice_message: "This is an exit relay for the Anyone Protocol network. If you have concerns about traffic from this IP, please contact the operator."
+# DoS Mitigation (Required for exit relays)
+anon_dos_circuit_creation_enabled: true
+anon_dos_circuit_creation_burst: 30
+anon_dos_circuit_creation_rate: 3
+anon_dos_connection_enabled: true
+anon_dos_stream_creation_enabled: true
+# Reverse DNS (Required for exit relays)
+anon_reverse_dns_hostname: "anon-exit-1.example.com"
+# Network Requirements
+anon_port_forward_required: true
+anon_ipv6_enabled: true
+anon_ipv6_exit: false # Disable IPv6 for exit relays
+# Firewall Configuration (Enhanced for exit relays)
+anon_firewall_enabled: true
+anon_firewall_rules:
+  - port: "{{ anon_relay_or_port }}"
+    proto: "tcp"
+    action: "allow"
+    comment: "ORPort for relay traffic"
+  - port: "{{ anon_relay_dir_port }}"
+    proto: "tcp"
+    action: "allow"
+    comment: "DirPort for directory service"
+  - port: "{{ anon_ssh_port }}"
+    proto: "tcp"
+    action: "allow"
+    comment: "SSH access"
+# Security Settings (Enhanced for exit relays)
+anon_ssh_port: 52231 # Non-standard port
+anon_ssh_root_login: false
+anon_ssh_password_auth: false
+anon_fail2ban_enabled: true
+anon_disk_encryption_required: true # Document only
+# Resource Requirements (Higher for exit relays)
+preflight_min_ram_mb: 1024
+preflight_min_disk_gb: 10
+preflight_min_cpu_cores: 2
+# Preflight Checks (Enhanced for exit relays)
+preflight_exit_legal_required: true
+preflight_exit_reverse_dns_required: true
+preflight_required_ports:
+  - 22 # SSH
+  - 9001 # ORPort
+  - 80 # DirPort
+# Health Check Settings
+health_check_orport: true
+health_check_dirport: true
+health_check_orport_timeout: 10
+health_check_logs: true
+health_check_performance: true
+health_check_memory_usage: 85
+health_check_cpu_usage: 85

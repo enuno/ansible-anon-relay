@@ -1,0 +1,83 @@
+# Relay-specific requirement checks
+- name: Check exit relay legal acknowledgment
+  assert:
+    that:
+      - anon_exit_legal_acknowledged | default(false) == true
+    fail_msg: "Legal acknowledgment required for exit relay deployment. Set anon_exit_legal_acknowledged=true"
+    success_msg: "Exit relay legal acknowledgment confirmed"
+  when: anon_relay_type | default('standard') == 'exit'
+  tags:
+    - preflight
+    - relay
+    - exit
+    - legal
+- name: Check exit relay contact email
+  assert:
+    that:
+      - anon_relay_contact is defined
+      - anon_relay_contact != ""
+      - "'@' in anon_relay_contact"
+    fail_msg: "Valid contact email required for exit relay deployment"
+    success_msg: "Exit relay contact email check passed: {{ anon_relay_contact }}"
+  when: anon_relay_type | default('standard') == 'exit'
+  tags:
+    - preflight
+    - relay
+    - exit
+    - contact
+- name: Check reverse DNS for exit relay
+  command: dig +short -x {{ ansible_default_ipv4.address }}
+  register: reverse_dns_check
+  changed_when: false
+  failed_when: false
+  when: anon_relay_type | default('standard') == 'exit'
+  tags:
+    - preflight
+    - relay
+    - exit
+    - dns
+- name: Display reverse DNS status for exit relay
+  debug:
+    msg: "Reverse DNS: {{ reverse_dns_check.stdout.strip() if reverse_dns_check.stdout.strip() else 'Not configured' }}"
+  when: anon_relay_type | default('standard') == 'exit'
+  tags:
+    - preflight
+    - relay
+    - exit
+    - dns
+- name: Check SOCKS proxy network configuration
+  assert:
+    that:
+      - anon_socks_bind_address is defined
+      - anon_socks_policy_accept is defined
+  fail_msg: "SOCKS proxy requires anon_socks_bind_address and anon_socks_policy_accept configuration"
+  success_msg: "SOCKS proxy network configuration check passed"
+  when: anon_relay_type | default('standard') == 'socks'
+  tags:
+    - preflight
+    - relay
+    - socks
+    - network
+- name: Check relay nickname format
+  assert:
+    that:
+      - anon_relay_nickname is defined
+      - anon_relay_nickname | length <= 19
+      - anon_relay_nickname | length >= 1
+  fail_msg: "Relay nickname must be 1-19 characters long"
+  success_msg: "Relay nickname check passed: {{ anon_relay_nickname }}"
+  tags:
+    - preflight
+    - relay
+    - nickname
+- name: Check bandwidth configuration
+  assert:
+    that:
+      - anon_relay_bandwidth_rate is defined
+      - anon_relay_bandwidth_rate != ""
+  fail_msg: "Bandwidth rate must be configured"
+  success_msg: "Bandwidth configuration check passed: {{ anon_relay_bandwidth_rate }}"
+  tags:
+    - preflight
+    - relay
+    - bandwidth

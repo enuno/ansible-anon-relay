@@ -1,0 +1,68 @@
+# Install monitoring tools
+- name: Install Python pip
+  package:
+    name: python3-pip
+    state: present
+  tags:
+    - anon
+    - monitor
+    - install
+    - pip
+- name: Install monitoring packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - htop
+    - iotop
+    - nethogs
+    - curl
+    - jq
+  tags:
+    - anon
+    - monitor
+    - install
+    - packages
+- name: Install Nyx via pip
+  pip:
+    name: nyx
+    state: present
+  when: anon_nyx_install_method | default('pip') == 'pip'
+  tags:
+    - anon
+    - monitor
+    - install
+    - nyx
+- name: Install Nyx via apt
+  package:
+    name: nyx
+    state: present
+  when: anon_nyx_install_method | default('pip') == 'apt'
+  tags:
+    - anon
+    - monitor
+    - install
+    - nyx
+- name: Create monitoring directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  loop:
+    - "{{ anon_monitor_scripts_dir }}"
+    - "{{ anon_monitor_log_dir }}"
+    - "{{ anon_nyx_config_dir }}"
+  tags:
+    - anon
+    - monitor
+    - install
+    - directories
+- name: Install monitoring scripts
+  include_tasks: scripts.yml
+  tags:
+    - anon
+    - monitor
+    - install
+    - scripts

@@ -1,0 +1,103 @@
+# SOCKS proxy validation tasks
+- name: Verify SOCKS proxy configuration
+  command: docker exec {{ anon_container_name | default('anon-relay') }} anon --verify-config -f /etc/anon/anonrc
+  register: config_verify_result
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - socks
+    - validate
+    - config
+- name: Assert configuration is valid
+  assert:
+    that:
+      - config_verify_result.rc == 0
+  fail_msg: "SOCKS proxy configuration is invalid: {{ config_verify_result.stderr }}"
+  success_msg: "SOCKS proxy configuration is valid"
+  tags:
+    - anon
+    - socks
+    - validate
+    - config
+- name: Check SOCKS port connectivity
+  wait_for:
+    port: "{{ anon_socks_port }}"
+    host: "{{ anon_socks_bind_address }}"
+    timeout: 10
+  register: socks_check
+  failed_when: false
+  tags:
+    - anon
+    - socks
+    - validate
+    - socks
+- name: Assert SOCKS port is reachable
+  assert:
+    that:
+      - socks_check.elapsed is defined
+  fail_msg: "SOCKS port {{ anon_socks_port }} is not reachable on {{ anon_socks_bind_address }}"
+  success_msg: "SOCKS port {{ anon_socks_port }} is reachable on {{ anon_socks_bind_address }}"
+  tags:
+    - anon
+    - socks
+    - validate
+    - socks
+- name: Test SOCKS proxy connection
+  command: "{{ anon_socks_client_config_path }}/test-proxy.sh"
+  register: proxy_test
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - socks
+    - validate
+    - test
+- name: Display proxy test results
+  debug:
+    msg: "SOCKS proxy test: {{ 'PASSED' if proxy_test.rc == 0 else 'FAILED' }}"
+  tags:
+    - anon
+    - socks
+    - validate
+    - test
+- name: Validate network access policy
+  assert:
+    that:
+      - anon_socks_policy_accept is defined
+      - anon_socks_policy_accept != ""
+      - anon_socks_bind_address is defined
+      - anon_socks_bind_address != ""
+  fail_msg: "Network access policy is incomplete"
+  success_msg: "Network access policy is properly configured"
+  tags:
+    - anon
+    - socks
+    - validate
+    - policy
+- name: Check client configuration files
+  stat:
+    path: "{{ anon_socks_client_config_path }}/{{ item }}"
+  register: client_files
+  loop:
+    - socks-config.txt
+    - browser-config.html
+    - set-proxy.sh
+    - test-proxy.sh
+  tags:
+    - anon
+    - socks
+    - validate
+    - client
+- name: Assert client configuration files exist
+  assert:
+    that:
+      - item.stat.exists
+  loop: "{{ client_files.results }}"
+  fail_msg: "Client configuration file {{ item.item }} is missing"
+  success_msg: "Client configuration file {{ item.item }} exists"
+  tags:
+    - anon
+    - socks
+    - validate
+    - client

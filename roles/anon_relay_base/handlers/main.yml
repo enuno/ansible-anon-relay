@@ -1,0 +1,16 @@
+# Handlers for anon_relay_base role
+- name: restart anon relay
+  community.docker.docker_container:
+    name: "{{ anon_container_name }}"
+    state: restarted
+  listen: restart anon relay
+- name: stop anon relay
+  community.docker.docker_container:
+    name: "{{ anon_container_name }}"
+    state: stopped
+  listen: stop anon relay
+- name: start anon relay
+  community.docker.docker_container:
+    name: "{{ anon_container_name }}"
+    state: started
+  listen: start anon relay

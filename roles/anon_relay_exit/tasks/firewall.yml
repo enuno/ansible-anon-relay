@@ -1,0 +1,114 @@
+# Firewall configuration for exit relay
+- name: Install UFW
+  package:
+    name: ufw
+    state: present
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw
+- name: Reset UFW to defaults
+  ufw:
+    state: reset
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw
+- name: Set UFW default policies
+  ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - {direction: "incoming", policy: "deny"}
+    - {direction: "outgoing", policy: "allow"}
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw
+- name: Allow SSH access
+  ufw:
+    rule: allow
+    port: "{{ anon_ssh_port }}"
+    proto: tcp
+    comment: "SSH access"
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw
+- name: Allow ORPort access
+  ufw:
+    rule: allow
+    port: "{{ anon_relay_or_port }}"
+    proto: tcp
+    comment: "ORPort for relay traffic"
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw
+- name: Allow DirPort access
+  ufw:
+    rule: allow
+    port: "{{ anon_relay_dir_port }}"
+    proto: tcp
+    comment: "DirPort for directory service"
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw
+- name: Allow IPv6 ORPort access
+  ufw:
+    rule: allow
+    port: "{{ anon_relay_or_port }}"
+    proto: tcp
+    comment: "IPv6 ORPort for relay traffic"
+  when: anon_ipv6_enabled | default(false)
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw
+    - ipv6
+- name: Allow IPv6 DirPort access
+  ufw:
+    rule: allow
+    port: "{{ anon_relay_dir_port }}"
+    proto: tcp
+    comment: "IPv6 DirPort for directory service"
+  when: anon_ipv6_enabled | default(false)
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw
+    - ipv6
+- name: Enable UFW
+  ufw:
+    state: enabled
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw
+- name: Display UFW status
+  command: ufw status verbose
+  register: ufw_status
+  changed_when: false
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw
+- name: Show UFW status
+  debug:
+    msg: "{{ ufw_status.stdout_lines }}"
+  tags:
+    - anon
+    - exit
+    - firewall
+    - ufw

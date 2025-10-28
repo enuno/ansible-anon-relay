@@ -1,0 +1,59 @@
+# {{ ansible_managed }}
+# SOCKS Proxy Configuration
+# Generated from: {{ role_path }}/templates/anonrc_socks.j2
+# EXPERIMENTAL: SOCKS proxy for local network use
+
+# Basic configuration
+Nickname {{ anon_relay_nickname | default('AnonSOCKSProxy') }}
+ContactInfo {{ anon_relay_contact | default('admin@example.com') }}
+
+# Data directory
+DataDirectory /var/lib/anon
+
+# Logging configuration
+Log {{ anon_log_level | default('notice') }} file {{ anon_log_file | default('/var/log/anon/notices.log') }}
+
+# Terms acceptance (required since v0.4.9.7-live)
+{% if anon_accept_terms | default(true) %}
+AcceptTerms true
+{% endif %}
+
+# Disable relay functionality
+ExitRelay 0
+IPv6Exit 0
+
+# Disable ORPort and DirPort (SOCKS proxy only)
+ORPort 0
+DirPort 0
+
+# SOCKS proxy configuration
+{% if anon_socks_port is defined and anon_socks_port > 0 %}
+SocksPort {{ anon_socks_bind_address }}:{{ anon_socks_port }}
+{% else %}
+SocksPort 0
+{% endif %}
+
+# Bandwidth configuration
+{% if anon_relay_bandwidth_rate is defined %}
+BandwidthRate {{ anon_relay_bandwidth_rate }}
+{% endif %}
+{% if anon_relay_bandwidth_burst is defined %}
+BandwidthBurst {{ anon_relay_bandwidth_burst }}
+{% endif %}
+
+# SOCKS policy (restrict to local network)
+{% if anon_socks_policy_accept is defined %}
+SocksPolicy accept {{ anon_socks_policy_accept }}
+{% else %}
+SocksPolicy accept 192.168.1.0/24
+{% endif %}
+SocksPolicy reject *:*
+
+# Family configuration (if applicable)
+{% if anon_relay_myfamily is defined and anon_relay_myfamily | length > 0 %}
+MyFamily {{ anon_relay_myfamily | join(' ') }}
+{% endif %}
+
+# Experimental warning
+# This SOCKS proxy configuration is experimental
+# and may not work as expected in all scenarios

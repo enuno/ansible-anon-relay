@@ -1,0 +1,46 @@
+# Exit notice deployment tasks
+- name: Create exit notice directory
+  file:
+    path: "{{ anon_base_dir }}/etc/anon/exit-notice"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  tags:
+    - anon
+    - exit
+    - notice
+- name: Deploy exit notice HTML
+  template:
+    src: exit_notice.html.j2
+    dest: "{{ anon_base_dir }}/etc/anon/exit-notice/index.html"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - exit
+    - notice
+    - html
+- name: Deploy abuse complaint template
+  template:
+    src: abuse_template.txt.j2
+    dest: "{{ anon_base_dir }}/etc/anon/exit-notice/abuse.txt"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - exit
+    - notice
+    - abuse
+- name: Configure web server for exit notice
+  include_tasks: web_server.yml
+  when: anon_exit_notice_enabled | default(true)
+  tags:
+    - anon
+    - exit
+    - notice
+    - webserver

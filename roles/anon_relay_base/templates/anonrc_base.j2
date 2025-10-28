@@ -1,0 +1,79 @@
+# {{ ansible_managed }}
+# Base Anon Relay Configuration
+# Generated from: {{ role_path }}/templates/anonrc_base.j2
+
+# Basic relay configuration
+Nickname {{ anon_relay_nickname | default('AnonRelay') }}
+ContactInfo {{ anon_relay_contact | default('operator@example.com') }}
+
+# Data directory
+DataDirectory /var/lib/anon
+
+# Logging configuration
+Log {{ anon_log_level | default('notice') }} file {{ anon_log_file | default('/var/log/anon/notices.log') }}
+
+# Terms acceptance (required since v0.4.9.7-live)
+{% if anon_accept_terms | default(true) %}
+AcceptTerms true
+{% endif %}
+
+# IPv6 configuration
+{% if anon_ipv6_enabled | default(false) %}
+IPv6Exit {{ '1' if anon_relay_type | default('standard') == 'exit' else '0' }}
+{% else %}
+IPv6Exit 0
+{% endif %}
+
+# Bandwidth configuration
+{% if anon_relay_bandwidth_rate is defined %}
+BandwidthRate {{ anon_relay_bandwidth_rate }}
+{% endif %}
+{% if anon_relay_bandwidth_burst is defined %}
+BandwidthBurst {{ anon_relay_bandwidth_burst }}
+{% endif %}
+
+# Port configuration
+{% if anon_relay_or_port is defined and anon_relay_or_port > 0 %}
+ORPort {{ anon_relay_or_port }}
+{% endif %}
+{% if anon_relay_dir_port is defined and anon_relay_dir_port > 0 %}
+DirPort {{ anon_relay_dir_port }}
+{% endif %}
+{% if anon_relay_socks_port is defined and anon_relay_socks_port > 0 %}
+SocksPort {{ anon_socks_bind_address | default('127.0.0.1') }}:{{ anon_relay_socks_port }}
+{% endif %}
+
+# Family configuration
+{% if anon_relay_myfamily is defined and anon_relay_myfamily | length > 0 %}
+MyFamily {{ anon_relay_myfamily | join(' ') }}
+{% endif %}
+
+# Exit relay configuration
+{% if anon_relay_type | default('standard') == 'exit' %}
+ExitRelay 1
+{% if anon_relay_exit_policy is defined %}
+{% for policy in anon_relay_exit_policy %}
+ExitPolicy {{ policy }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+# SOCKS proxy configuration
+{% if anon_relay_type | default('standard') == 'socks' %}
+{% if anon_socks_policy_accept is defined %}
+SocksPolicy accept {{ anon_socks_policy_accept }}
+{% endif %}
+{% endif %}
+
+# DoS mitigation (for exit relays)
+{% if anon_relay_type | default('standard') == 'exit' and anon_dos_circuit_creation_enabled | default(false) %}
+CircuitCreationEnabled {{ anon_dos_circuit_creation_enabled | lower }}
+CircuitCreationBurst {{ anon_dos_circuit_creation_burst | default(30) }}
+CircuitCreationRate {{ anon_dos_circuit_creation_rate | default(3) }}
+{% endif %}
+{% if anon_relay_type | default('standard') == 'exit' and anon_dos_connection_enabled | default(false) %}
+ConnectionEnabled {{ anon_dos_connection_enabled | lower }}
+{% endif %}
+{% if anon_relay_type | default('standard') == 'exit' and anon_dos_stream_creation_enabled | default(false) %}
+StreamCreationEnabled {{ anon_dos_stream_creation_enabled | lower }}
+{% endif %}

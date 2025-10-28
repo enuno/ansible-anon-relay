@@ -1,0 +1,81 @@
+# SOCKS Proxy Deployment Playbook
+# Deploys SOCKS proxy for local network use - EXPERIMENTAL
+- name: Deploy SOCKS Proxy
+  hosts: socks_proxies
+  become: yes
+  gather_facts: yes
+  pre_tasks:
+    - name: Display SOCKS proxy experimental warning
+      debug:
+        msg: |
+          ===========================================
+          SOCKS PROXY DEPLOYMENT
+          ===========================================
+          WARNING: This is an EXPERIMENTAL feature!
+
+          Host: {{ inventory_hostname }}
+          Nickname: {{ anon_relay_nickname | default('MySOCKSProxy') }}
+          Contact: {{ anon_relay_contact | default('admin@example.com') }}
+          SOCKS Port: {{ anon_socks_port | default(9050) }}
+          Bind Address: {{ anon_socks_bind_address | default('192.168.1.10') }}
+          Policy: {{ anon_socks_policy_accept | default('192.168.1.0/24') }}
+
+          This feature may not work as expected.
+          Use at your own risk.
+          ===========================================
+      tags:
+        - always
+        - info
+        - warning
+    - name: Run preflight checks
+      include_role:
+        name: preflight_checks
+      tags:
+        - preflight
+        - checks
+  roles:
+    - role: docker_setup
+      tags:
+        - docker
+        - setup
+    - role: anon_relay_base
+      tags:
+        - anon
+        - base
+    - role: anon_relay_socks
+      tags:
+        - anon
+        - socks
+  post_tasks:
+    - name: Run health checks
+      include_role:
+        name: health_checks
+      tags:
+        - health
+        - checks
+    - name: Display SOCKS proxy information
+      debug:
+        msg: |
+          ===========================================
+          SOCKS PROXY DEPLOYED
+          ===========================================
+          Host: {{ inventory_hostname }}
+          Nickname: {{ anon_relay_nickname | default('MySOCKSProxy') }}
+          SOCKS Port: {{ anon_socks_port | default(9050) }}
+          Bind Address: {{ anon_socks_bind_address | default('192.168.1.10') }}
+          Policy: {{ anon_socks_policy_accept | default('192.168.1.0/24') }}
+          Status: Running
+
+          Client Configuration: {{ anon_socks_client_config_path | default('/opt/anon/socks-client-config') }}
+
+          Files available:
+          - socks-config.txt: Basic configuration
+          - browser-config.html: Browser setup guide
+          - set-proxy.sh: System proxy script
+          - test-proxy.sh: Connection test script
+
+          ⚠️  EXPERIMENTAL: This feature may not work as expected.
+          ===========================================
+      tags:
+        - always
+        - info

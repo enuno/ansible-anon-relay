@@ -1,0 +1,62 @@
+# Network connectivity checks
+- name: Check DNS resolution
+  command: nslookup google.com
+  register: dns_check_result
+  changed_when: false
+  failed_when: false
+  when: preflight_check_dns | default(true)
+  tags:
+    - preflight
+    - network
+    - dns
+- name: Assert DNS resolution
+  assert:
+    that:
+      - dns_check_result.rc == 0
+    fail_msg: "DNS resolution failed - check your DNS configuration"
+    success_msg: "DNS resolution check passed"
+  when: preflight_check_dns | default(true)
+  tags:
+    - preflight
+    - network
+    - dns
+- name: Check internet connectivity
+  uri:
+    url: "https://www.google.com"
+    method: GET
+    timeout: 10
+  register: internet_check_result
+  when: preflight_check_internet | default(true)
+  tags:
+    - preflight
+    - network
+    - internet
+- name: Assert internet connectivity
+  assert:
+    that:
+      - internet_check_result.status == 200
+    fail_msg: "Internet connectivity failed - check your network connection"
+    success_msg: "Internet connectivity check passed"
+  when: preflight_check_internet | default(true)
+  tags:
+    - preflight
+    - network
+    - internet
+- name: Check IPv6 availability
+  command: ping6 -c 1 google.com
+  register: ipv6_check_result
+  changed_when: false
+  failed_when: false
+  when: anon_ipv6_enabled | default(false)
+  tags:
+    - preflight
+    - network
+    - ipv6
+- name: Display IPv6 status
+  debug:
+    msg: "IPv6 connectivity: {{ 'Available' if ipv6_check_result.rc == 0 else 'Not available' }}"
+  when: anon_ipv6_enabled | default(false)
+  tags:
+    - preflight
+    - network
+    - ipv6

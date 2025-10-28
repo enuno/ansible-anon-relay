@@ -1,0 +1,70 @@
+# Configure Nyx monitoring
+- name: Deploy Nyx configuration
+  template:
+    src: nyx_config.j2
+    dest: "{{ anon_nyx_config_file }}"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - nyx
+    - config
+- name: Create Nyx startup script
+  template:
+    src: nyx_start.sh.j2
+    dest: "{{ anon_monitor_scripts_dir }}/nyx_start.sh"
+    mode: '0755'
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - anon
+    - monitor
+    - nyx
+    - script
+- name: Create Nyx systemd service
+  template:
+    src: nyx.service.j2
+    dest: /etc/systemd/system/nyx.service
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  notify: reload systemd
+  tags:
+    - anon
+    - monitor
+    - nyx
+    - service
+- name: Enable and start Nyx service
+  systemd:
+    name: nyx
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  tags:
+    - anon
+    - monitor
+    - nyx
+    - service
+- name: Test Nyx connection
+  command: nyx --version
+  register: nyx_test
+  changed_when: false
+  failed_when: false
+  tags:
+    - anon
+    - monitor
+    - nyx
+    - test
+- name: Display Nyx status
+  debug:
+    msg: "Nyx version: {{ nyx_test.stdout if nyx_test.rc == 0 else 'Not available' }}"
+  tags:
+    - anon
+    - monitor
+    - nyx
+    - test

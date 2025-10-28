@@ -1,0 +1,75 @@
+# Docker installation and version checks
+- name: Check if Docker is installed
+  command: docker --version
+  register: docker_version_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - preflight
+    - docker
+    - version
+- name: Assert Docker is installed
+  assert:
+    that:
+      - docker_version_check.rc == 0
+    fail_msg: "Docker is not installed or not in PATH"
+    success_msg: "Docker installation check passed: {{ docker_version_check.stdout }}"
+  tags:
+    - preflight
+    - docker
+    - version
+- name: Check Docker daemon status
+  command: docker info
+  register: docker_daemon_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - preflight
+    - docker
+    - daemon
+- name: Assert Docker daemon is running
+  assert:
+    that:
+      - docker_daemon_check.rc == 0
+    fail_msg: "Docker daemon is not running - start Docker service"
+    success_msg: "Docker daemon check passed"
+  tags:
+    - preflight
+    - docker
+    - daemon
+- name: Check Docker Compose availability
+  command: docker compose version
+  register: docker_compose_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - preflight
+    - docker
+    - compose
+- name: Assert Docker Compose is available
+  assert:
+    that:
+      - docker_compose_check.rc == 0
+    fail_msg: "Docker Compose is not available - install docker-compose-plugin"
+    success_msg: "Docker Compose check passed: {{ docker_compose_check.stdout }}"
+  tags:
+    - preflight
+    - docker
+    - compose
+- name: Check Docker version compatibility
+  set_fact:
+    docker_version: "{{ docker_version_check.stdout | regex_replace('Docker version ([0-9.]+).*', '\\1') }}"
+  tags:
+    - preflight
+    - docker
+    - version
+- name: Assert minimum Docker version
+  assert:
+    that:
+      - docker_version is version(preflight_docker_version_min, '>=')
+    fail_msg: "Docker version {{ docker_version }} is too old (minimum {{ preflight_docker_version_min }} required)"
+    success_msg: "Docker version check passed: {{ docker_version }}"
+  tags:
+    - preflight
+    - docker
+    - version

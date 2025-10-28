@@ -1,0 +1,72 @@
+# DoS mitigation configuration for exit relays
+- name: Configure DoS circuit creation limits
+  lineinfile:
+    path: "{{ anon_base_dir }}/etc/anon/anonrc"
+    line: "DoSCircuitCreationEnabled {{ 1 if anon_dos_circuit_creation_enabled | default(true) else 0 }}"
+    state: present
+    backup: yes
+  tags:
+    - anon
+    - exit
+    - dos
+    - circuit
+- name: Configure DoS circuit creation burst
+  lineinfile:
+    path: "{{ anon_base_dir }}/etc/anon/anonrc"
+    line: "DoSCircuitCreationBurst {{ anon_dos_circuit_creation_burst | default(30) }}"
+    state: present
+    backup: yes
+  when: anon_dos_circuit_creation_enabled | default(true)
+  tags:
+    - anon
+    - exit
+    - dos
+    - circuit
+- name: Configure DoS circuit creation rate
+  lineinfile:
+    path: "{{ anon_base_dir }}/etc/anon/anonrc"
+    line: "DoSCircuitCreationRate {{ anon_dos_circuit_creation_rate | default(3) }}"
+    state: present
+    backup: yes
+  when: anon_dos_circuit_creation_enabled | default(true)
+  tags:
+    - anon
+    - exit
+    - dos
+    - circuit
+- name: Configure DoS connection limits
+  lineinfile:
+    path: "{{ anon_base_dir }}/etc/anon/anonrc"
+    line: "DoSConnectionEnabled {{ 1 if anon_dos_connection_enabled | default(true) else 0 }}"
+    state: present
+    backup: yes
+  tags:
+    - anon
+    - exit
+    - dos
+    - connection
+- name: Configure DoS stream creation limits
+  lineinfile:
+    path: "{{ anon_base_dir }}/etc/anon/anonrc"
+    line: "DoSStreamCreationEnabled {{ 1 if anon_dos_stream_creation_enabled | default(true) else 0 }}"
+    state: present
+    backup: yes
+  tags:
+    - anon
+    - exit
+    - dos
+    - stream
+- name: Display DoS mitigation configuration
+  debug:
+    msg: |
+      DoS Mitigation Configuration:
+      - Circuit Creation: {{ 'Enabled' if anon_dos_circuit_creation_enabled | default(true) else 'Disabled' }}
+      - Circuit Burst: {{ anon_dos_circuit_creation_burst | default(30) }}
+      - Circuit Rate: {{ anon_dos_circuit_creation_rate | default(3) }}
+      - Connection Limits: {{ 'Enabled' if anon_dos_connection_enabled | default(true) else 'Disabled' }}
+      - Stream Creation: {{ 'Enabled' if anon_dos_stream_creation_enabled | default(true) else 'Disabled' }}
+  tags:
+    - anon
+    - exit
+    - dos
+    - info

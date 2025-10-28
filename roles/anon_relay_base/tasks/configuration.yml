@@ -1,0 +1,74 @@
+# Configuration file deployment
+- name: Deploy Docker Compose file
+  template:
+    src: relay.yaml.j2
+    dest: "{{ compose_dir }}/relay.yaml"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  notify: restart anon relay
+  tags:
+    - anon
+    - configuration
+    - compose
+- name: Deploy base Anon configuration
+  template:
+    src: anonrc_base.j2
+    dest: "{{ anon_base_dir }}/etc/anon/anonrc"
+    mode: '{{ anon_config_mode }}'
+    owner: "{{ anon_config_owner }}"
+    group: "{{ anon_config_group }}"
+    backup: yes
+  notify: restart anon relay
+  tags:
+    - anon
+    - configuration
+    - anonrc
+- name: Deploy Nyx configuration
+  template:
+    src: config.j2
+    dest: "{{ anon_nyx_config_file }}"
+    mode: '0644'
+    owner: root
+    group: root
+    backup: yes
+  when: anon_nyx_enabled | default(true)
+  tags:
+    - anon
+    - configuration
+    - nyx
+- name: Create log file
+  file:
+    path: "{{ anon_log_file }}"
+    state: touch
+    mode: '0644'
+    owner: "{{ anon_data_owner }}"
+    group: "{{ anon_data_group }}"
+  tags:
+    - anon
+    - configuration
+    - logs
+- name: Verify configuration files
+  stat:
+    path: "{{ item }}"
+  register: config_files_check
+  loop:
+    - "{{ compose_dir }}/relay.yaml"
+    - "{{ anon_base_dir }}/etc/anon/anonrc"
+    - "{{ anon_nyx_config_file }}"
+  tags:
+    - anon
+    - configuration
+    - verify
+- name: Assert configuration files exist
+  assert:
+    that:
+      - item.stat.exists
+  loop: "{{ config_files_check.results }}"
+  fail_msg: "Configuration file {{ item.item }} does not exist"
+  success_msg: "Configuration file {{ item.item }} exists"
+  tags:
+    - anon
+    - configuration
+    - verify

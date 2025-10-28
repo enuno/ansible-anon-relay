@@ -1,0 +1,30 @@
+# {{ ansible_managed }}
+# Nyx configuration file
+# Generated from: {{ role_path }}/templates/nyx_config.j2
+
+[main]
+control_socket = {{ anon_nyx_control_socket }}
+log_file = {{ anon_nyx_log_file }}
+
+[display]
+refresh_rate = 1
+show_bandwidth = true
+show_connections = true
+show_circuits = true
+show_streams = true
+
+[colors]
+background = black
+foreground = white
+highlight = yellow
+warning = red
+error = red
+
+[keys]
+quit = q
+help = h
+refresh = r
+toggle_bandwidth = b
+toggle_connections = c
+toggle_circuits = i
+toggle_streams = s

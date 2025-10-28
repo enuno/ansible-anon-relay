@@ -1,0 +1,62 @@
+# Global variables for all Anon relay deployments
+# These variables apply to all hosts unless overridden
+
+# Docker Configuration
+docker_edition: 'ce' # Community Edition
+docker_package: "docker-{{ docker_edition }}"
+docker_compose_version: "latest"
+docker_daemon_config_dir: "/etc/docker"
+docker_daemon_config_file: "{{ docker_daemon_config_dir }}/daemon.json"
+# Docker daemon configuration
+docker_daemon_config:
+  log-driver: "json-file"
+  log-opts:
+    max-size: "10m"
+    max-file: "3"
+  storage-driver: "overlay2"
+  live-restore: true
+# Docker group configuration
+docker_group: "docker"
+docker_group_gid: 999
+# Users to add to docker group
+docker_users: []
+# Anon User Configuration
+anon_user: "anond"
+anon_uid: 100
+anon_gid: 101
+# Base Directories
+anon_base_dir: "/opt/anon"
+compose_dir: "/opt/compose-files"
+nyx_dir: "/root/.nyx"
+# Common Settings
+anon_accept_terms: true # Required for v0.4.9.7-live+
+anon_docker_image: "svforte/anon:latest"
+# Network Configuration
+anon_ipv6_enabled: true
+anon_port_forward_required: true
+# Security Settings
+anon_ssh_port: 22
+anon_firewall_enabled: true
+anon_fail2ban_enabled: true
+# Monitoring Settings
+anon_monitoring_enabled: true
+anon_nyx_enabled: true
+# Logging Configuration
+anon_log_level: "notice"
+anon_log_file: "/var/log/anon/notices.log"
+# Performance Settings
+anon_max_mem_in_mb: 512
+anon_max_cpu_percent: 80
+# Preflight Check Settings
+preflight_min_ram_mb: 512
+preflight_min_disk_gb: 5
+preflight_min_cpu_cores: 1
+preflight_check_network: true
+preflight_check_docker: true
+preflight_docker_version_min: "20.10.0"
+# Health Check Settings
+health_check_timeout: 30
+health_check_retries: 3
+health_check_delay: 10
+health_check_container_name: "anon-relay"
+health_check_performance: false

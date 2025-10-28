@@ -1,0 +1,27 @@
+# Main tasks for anon_relay_base role
+# Base relay deployment shared by all relay types
+- name: Create Anon user and group
+  include_tasks: users.yml
+  tags:
+    - anon
+    - users
+- name: Create base directories
+  include_tasks: directories.yml
+  tags:
+    - anon
+    - directories
+- name: Deploy configuration files
+  include_tasks: configuration.yml
+  tags:
+    - anon
+    - configuration
+- name: Deploy Docker container
+  include_tasks: container.yml
+  tags:
+    - anon
+    - container
+- name: Configure log rotation
+  include_tasks: log_rotation.yml
+  tags:
+    - anon
+    - logs
