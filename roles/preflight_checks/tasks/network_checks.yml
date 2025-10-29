@@ -26,6 +26,7 @@
     method: GET
     timeout: 10
   register: internet_check_result
+  failed_when: false
   when: preflight_check_internet | default(true)
   tags:
     - preflight
@@ -34,6 +35,8 @@
 - name: Assert internet connectivity
   assert:
     that:
+      - internet_check_result is not skipped
+      - internet_check_result.status is defined
       - internet_check_result.status == 200
     fail_msg: "Internet connectivity failed - check your network connection"
     success_msg: "Internet connectivity check passed"
